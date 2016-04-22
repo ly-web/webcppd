@@ -15,11 +15,7 @@ namespace webcpp {
 
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
 		std::string uri = Poco::URI(request.getURI()).getPath();
-		uri.erase(0, 1);
-		if (uri.back() == '/') {
-			uri.pop_back();
-		}
-		Poco::StringTokenizer tokenizer(uri, "/");
+		Poco::StringTokenizer tokenizer(uri, "/", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 		int n = tokenizer.count();
 		std::string libName("libhome"), funcName("indexImpl");
 		switch (n) {
