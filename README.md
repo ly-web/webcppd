@@ -9,6 +9,8 @@
 * PocoUtil 
 * PocoNet 
 * PocoFoundation
+* memcached
+* libmemcached
 
 # 使用方法
 webcppd是基于动态库加载的web动态服务器
