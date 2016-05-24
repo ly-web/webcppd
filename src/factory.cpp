@@ -13,9 +13,9 @@ namespace webcpp {
 
 	factory::factory(webcpp::conf& conf) :
 	libHandlerDir(conf.getString("libHandlerDir", "/usr/bin")),
-	ipDenyExpire(1000 * conf.getInt("ipDenyExpire", 3600)),
+	ipDenyExpire(conf.getInt("ipDenyExpire", 3600)),
 	ipMaxAccessCount(conf.getInt("ipMaxAccessCount", 10)),
-	ipAccessInterval(1000 * conf.getInt("ipAccessInterval", 10))
+	ipAccessInterval(conf.getInt("ipAccessInterval", 10))
 	{
 	}
 
