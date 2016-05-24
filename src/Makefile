@@ -3,7 +3,7 @@ SRC=$(wildcard *.cpp)
 OBJ=$(patsubst %.cpp,%.o,${SRC})
 
 CXXFLAGS+=-O3 -std=c++11
-LIBS+=-lPocoUtil -lPocoNet -lPocoFoundation
+LIBS+= -lmemcached -lPocoUtil -lPocoNet -lPocoFoundation
 
 all:$(PRO)
 	

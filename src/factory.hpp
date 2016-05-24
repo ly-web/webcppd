@@ -14,6 +14,7 @@ namespace webcpp {
 		Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
 	private:
 		const std::string libHandlerDir;
+                const int ipDenyExpire,ipMaxAccessCount,ipAccessInterval;
 	};
 }
 #endif /* FACTORY_HPP */
