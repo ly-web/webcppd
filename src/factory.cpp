@@ -15,13 +15,14 @@ namespace webcpp {
 	libHandlerDir(conf.getString("libHandlerDir", "/usr/bin")),
 	ipDenyExpire(conf.getInt("ipDenyExpire", 3600)),
 	ipMaxAccessCount(conf.getInt("ipMaxAccessCount", 10)),
-	ipAccessInterval(conf.getInt("ipAccessInterval", 10))
+	ipAccessInterval(conf.getInt("ipAccessInterval", 10)),
+	ipEnableCheck(conf.getBool("ipEnableCheck", true))
 	{
 	}
 
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
-		if (!webcpp::checkip(request.clientAddress().host().toString(), this->ipDenyExpire, this->ipMaxAccessCount, this->ipAccessInterval)) {
+		if (this->ipEnableCheck&&!webcpp::checkip(request.clientAddress().host().toString(), this->ipDenyExpire, this->ipMaxAccessCount, this->ipAccessInterval)) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 		}
 		std::string uri = Poco::URI(request.getURI()).getPath();
