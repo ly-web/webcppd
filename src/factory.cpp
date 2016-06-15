@@ -28,16 +28,17 @@ namespace webcpp {
 		std::string uri = Poco::URI(request.getURI()).getPath();
 		Poco::StringTokenizer tokenizer(uri, "/", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 		int n = tokenizer.count();
-		std::string libName("libhome"), funcName("indexImpl");
+		std::string libName("libhome"), funcName("home_indexImpl");
 		switch (n) {
 		case 0:
 			break;
 		case 1:
 			libName = "lib" + tokenizer[0];
+			funcName = tokenizer[0]+"_indexImpl";
 			break;
 		default:
 			libName = "lib" + tokenizer[0];
-			funcName = tokenizer[1] + "Impl";
+			funcName = tokenizer[0]+"_"+tokenizer[1] + "Impl";
 		}
 
 		std::string libPath(this->libHandlerDir + "/" + libName + Poco::SharedLibrary::suffix());
