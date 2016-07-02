@@ -5,6 +5,9 @@
 #include <Poco/Format.h>
 #include <Poco/URI.h>
 #include <Poco/File.h>
+#include <Poco/ClassLoader.h>
+#include <Poco/Exception.h>
+
 #include "factory.hpp"
 #include "error.hpp"
 #include "checkip.hpp"
@@ -28,42 +31,45 @@ namespace webcpp {
 		std::string uri = Poco::URI(request.getURI()).getPath();
 		Poco::StringTokenizer tokenizer(uri, "/", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 		int n = tokenizer.count();
-		std::string libName("libhome"), funcName("home_indexImpl");
+		std::string preName("webcpp"), libName("home"), className("index");
 		switch (n) {
 		case 0:
 			break;
 		case 1:
-			libName = "lib" + tokenizer[0];
-			funcName = tokenizer[0]+"_indexImpl";
+			libName = tokenizer[0];
+			className = "index";
 			break;
 		default:
-			libName = "lib" + tokenizer[0];
-			funcName = tokenizer[0]+"_"+tokenizer[1] + "Impl";
+			libName = tokenizer[0];
+			className = tokenizer[1];
 		}
 
 		std::string libPath(this->libHandlerDir + "/" + libName + Poco::SharedLibrary::suffix());
 		if (!Poco::File(libPath).exists()) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}
-		Poco::SharedLibrary libLoader;
-		libLoader.load(libPath);
-		if (!libLoader.isLoaded()) {
-			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_SERVICE_UNAVAILABLE, libName + " is not loaded.");
+		std::string fullClassName = Poco::format("%[0]s::%[1]s::%[2]sFactory", preName, libName, className);
+		Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
+
+		if (!classLoader.isLibraryLoaded(libPath)) {
+			try {
+				classLoader.loadLibrary(libPath);
+			} catch (Poco::LibraryLoadException& e) {
+				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_BAD_GATEWAY, e.message());
+
+			}
 		}
 
-
-		if (!libLoader.hasSymbol(funcName)) {
-			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_IMPLEMENTED, funcName + " is not found.");
+		Poco::Net::HTTPRequestHandlerFactory* handler = 0;
+		if (classLoader.findClass(fullClassName)->canCreate()) {
+			handler = classLoader.create(fullClassName);
+			classLoader.classFor(fullClassName).autoDelete(handler);
 		}
-
-		typedef Poco::Net::HTTPRequestHandler * (*IMPL)();
-		IMPL impl = (IMPL) libLoader.getSymbol(funcName);
-		Poco::Net::HTTPRequestHandler *handler = 0;
-		handler = impl();
 		if (!handler) {
-			handler = new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_IMPLEMENTED, funcName + " is not running.");
+			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, fullClassName + " is not exists.");
 		}
-		return handler;
+
+		return handler->createRequestHandler(request);
 	}
 
 }
