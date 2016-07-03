@@ -61,11 +61,12 @@ namespace webcpp {
 		}
 
 		Poco::Net::HTTPRequestHandlerFactory* handler = 0;
-		if (classLoader.findClass(fullClassName)->canCreate()) {
+		auto finded = classLoader.findClass(fullClassName);
+		if (finded != 0 && finded->canCreate()) {
 			handler = classLoader.create(fullClassName);
 			classLoader.classFor(fullClassName).autoDelete(handler);
 		}
-		if (!handler) {
+		if (handler == 0) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, fullClassName + " is not exists.");
 		}
 
