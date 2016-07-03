@@ -2,7 +2,7 @@
 #include <Poco/ThreadPool.h>
 #include <Poco/Net/HTTPServerParams.h>
 #include <Poco/Net/ServerSocket.h>
-
+#include <Poco/Timespan.h>
 #include <iostream>
 
 #include "subsystem.hpp"
@@ -16,11 +16,13 @@ namespace webcpp {
 	const int subsystem::DEFAULT_MAX_THREADS = 50;
 	const std::string subsystem::DEFAULT_SOFTWARE_VERSION = "webcppd/0.1.1";
 
-	const char* subsystem::name() const {
+	const char* subsystem::name() const
+	{
 		return "http::Server";
 	}
 
-	void subsystem::initialize(Poco::Util::Application& app) {
+	void subsystem::initialize(Poco::Util::Application& app)
+	{
 		webcpp::conf serverConf(app.config());
 		unsigned short port = static_cast<unsigned short> (serverConf.getInt("port", subsystem::DEFAULT_PORT));
 		int maxQueued = serverConf.getInt("maxQueued", subsystem::DEFAULT_MAX_QUEUED);
@@ -33,12 +35,16 @@ namespace webcpp {
 		pars->setMaxQueued(maxQueued);
 		pars->setMaxThreads(maxThreads);
 		pars->setSoftwareVersion(softwareVersion);
+		pars->setKeepAlive(true);
+		pars->setMaxKeepAliveRequests(0);
+		pars->setKeepAliveTimeout(Poco::Timespan(75, 0));
 		this->server = new Poco::Net::HTTPServer(new webcpp::factory(serverConf), port, pars);
 		this->server->start();
-		
+
 	}
 
-	void subsystem::uninitialize() {
+	void subsystem::uninitialize()
+	{
 		this->server->stop();
 		delete server;
 	}
