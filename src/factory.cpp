@@ -19,8 +19,23 @@ namespace webcpp {
 	ipDenyExpire(conf.getInt("ipDenyExpire", 3600)),
 	ipMaxAccessCount(conf.getInt("ipMaxAccessCount", 10)),
 	ipAccessInterval(conf.getInt("ipAccessInterval", 10)),
-	ipEnableCheck(conf.getBool("ipEnableCheck", true))
+	ipEnableCheck(conf.getBool("ipEnableCheck", true)),
+	classLoader()
 	{
+	}
+
+	factory::~factory()
+	{
+		std::vector<std::string> libpath;
+		Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory>::Iterator it = this->classLoader.begin();
+
+		for (; it != this->classLoader.end(); ++it) {
+			libpath.push_back(it->first);
+		}
+		for (auto &item : libpath) {
+			this->classLoader.unloadLibrary(item);
+		}
+
 	}
 
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
@@ -49,11 +64,11 @@ namespace webcpp {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}
 		std::string fullClassName = Poco::format("%[0]s::%[1]s::%[2]sFactory", preName, libName, className);
-		Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
 
-		if (!classLoader.isLibraryLoaded(libPath)) {
+
+		if (!this->classLoader.isLibraryLoaded(libPath)) {
 			try {
-				classLoader.loadLibrary(libPath);
+				this->classLoader.loadLibrary(libPath);
 			} catch (Poco::LibraryLoadException& e) {
 				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_BAD_GATEWAY, e.message());
 
@@ -61,10 +76,10 @@ namespace webcpp {
 		}
 
 		Poco::Net::HTTPRequestHandlerFactory* handler = 0;
-		auto finded = classLoader.findClass(fullClassName);
+		auto finded = this->classLoader.findClass(fullClassName);
 		if (finded != 0 && finded->canCreate()) {
-			handler = classLoader.create(fullClassName);
-			classLoader.classFor(fullClassName).autoDelete(handler);
+			handler = this->classLoader.create(fullClassName);
+			this->classLoader.classFor(fullClassName).autoDelete(handler);
 		}
 		if (handler == 0) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, fullClassName + " is not exists.");
