@@ -12,14 +12,14 @@ namespace webcpp {
 
     class factory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-        factory(webcpp::conf& conf);
+        factory();
         virtual~factory();
         Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
     private:
-        const std::string libHandlerDir;
-        bool ipEnableCheck;
-        const int ipDenyExpire, ipMaxAccessCount, ipAccessInterval;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
+        static const std::string libHandlerDir;
+        static const bool ipEnableCheck;
+        static const int ipDenyExpire,ipMaxAccessCount,ipAccessInterval;
     };
 }
 #endif /* FACTORY_HPP */

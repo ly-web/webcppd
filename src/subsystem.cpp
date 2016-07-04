@@ -38,7 +38,7 @@ namespace webcpp {
 		pars->setKeepAlive(true);
 		pars->setMaxKeepAliveRequests(0);
 		pars->setKeepAliveTimeout(Poco::Timespan(75, 0));
-		this->server = new Poco::Net::HTTPServer(new webcpp::factory(serverConf), port, pars);
+		this->server = new Poco::Net::HTTPServer(new webcpp::factory(), port, pars);
 		this->server->start();
 
 	}
