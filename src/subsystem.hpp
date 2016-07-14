@@ -17,11 +17,6 @@ namespace webcpp {
 
 	private:
 		Poco::Net::HTTPServer *server;
-	public:
-		const static int DEFAULT_PORT;
-		const static int DEFAULT_MAX_QUEUED;
-		const static int DEFAULT_MAX_THREADS;
-		const static std::string DEFAULT_SOFTWARE_VERSION;
 	};
 }
 #endif /* SUBSYSTEM_HPP */
