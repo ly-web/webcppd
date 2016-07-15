@@ -29,7 +29,6 @@
 *.exe
 *.out
 *.app
-/download/
-/tpl/
-/www/
-/log/
+/www/*/*
+/tpl/*/*
+/log/*/*
