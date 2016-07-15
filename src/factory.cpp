@@ -16,12 +16,6 @@
 
 namespace webcpp {
 
-	const std::string factory::libHandlerDir = "/usr/bin";
-	const bool factory::ipEnableCheck = true;
-	const int factory::ipDenyExpire = 3600
-		, factory::ipMaxAccessCount = 10
-		, factory::ipAccessInterval = 10;
-
 	factory::factory() : classLoader()
 	{
 	}
@@ -44,7 +38,7 @@ namespace webcpp {
 	{
 		webcpp::conf serverConf(Poco::Util::Application::instance().config());
 
-		if (serverConf.getBool("ipEnableCheck", factory::ipEnableCheck) && !webcpp::checkip(request.clientAddress().host().toString(), serverConf.getInt("ipDenyExpire", factory::ipDenyExpire), serverConf.getInt("ipMaxAccessCount", factory::ipMaxAccessCount), serverConf.getInt("ipAccessInterval", factory::ipAccessInterval))) {
+		if (serverConf.getBool("ipEnableCheck", false) && !webcpp::checkip(request.clientAddress().host().toString(), serverConf.getInt("ipDenyExpire", 3600), serverConf.getInt("ipMaxAccessCount", 10), serverConf.getInt("ipAccessInterval", 10))) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 		}
 		std::string uri = Poco::URI(request.getURI()).getPath();
@@ -64,7 +58,7 @@ namespace webcpp {
 			className = tokenizer[1];
 		}
 
-		std::string libPath(serverConf.getString("libHandlerDir", factory::libHandlerDir) + "/" + libName + Poco::SharedLibrary::suffix());
+		std::string libPath(serverConf.getString("libHandlerDir", "/usr/lib") + "/" + libName + Poco::SharedLibrary::suffix());
 		if (!Poco::File(libPath).exists()) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}
