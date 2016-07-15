@@ -6,6 +6,8 @@
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/ClassLoader.h>
+#include <Poco/AutoPtr.h>
+#include <Poco/FileChannel.h>
 #include "conf.hpp"
 
 namespace webcpp {
@@ -16,6 +18,8 @@ namespace webcpp {
         virtual~factory();
         Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
     private:
+        webcpp::conf serverConf;
+        Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
     };
 }

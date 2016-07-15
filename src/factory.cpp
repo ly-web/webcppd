@@ -8,6 +8,14 @@
 #include <Poco/ClassLoader.h>
 #include <Poco/Exception.h>
 #include <Poco/Util/Application.h>
+#include <Poco/FileChannel.h>
+#include <Poco/Message.h>
+#include <Poco/AutoPtr.h>
+#include <Poco/LocalDateTime.h>
+#include <Poco/DateTimeFormat.h>
+#include <Poco/DateTimeFormatter.h>
+
+
 
 #include "factory.hpp"
 #include "error.hpp"
@@ -16,12 +24,18 @@
 
 namespace webcpp {
 
-	factory::factory() : classLoader()
+	factory::factory() : serverConf(Poco::Util::Application::instance().config())
+	, logger(new Poco::FileChannel(serverConf.getString("logDirectory", "/var/www") + "/webcppd.log"))
+	, classLoader()
 	{
+		this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("logFileSize", "10M"));
+		this->logger->open();
+
 	}
 
 	factory::~factory()
 	{
+		this->logger->close();
 		std::vector<std::string> libpath;
 		Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory>::Iterator it = this->classLoader.begin();
 
@@ -32,17 +46,17 @@ namespace webcpp {
 			this->classLoader.unloadLibrary(item);
 		}
 
+
 	}
 
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
-		webcpp::conf serverConf(Poco::Util::Application::instance().config());
-
-		if (serverConf.getBool("ipEnableCheck", false) && !webcpp::checkip(request.clientAddress().host().toString(), serverConf.getInt("ipDenyExpire", 3600), serverConf.getInt("ipMaxAccessCount", 10), serverConf.getInt("ipAccessInterval", 10))) {
+		if (this->serverConf.getBool("ipEnableCheck", false) && !webcpp::checkip(request.clientAddress().host().toString(), this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 		}
 		std::string uri = Poco::URI(request.getURI()).getPath();
-
+		Poco::Message msg("webcppd.logger", Poco::format("%[3]s %[0]s %[2]s %[4]s %[1]s", request.clientAddress().toString(), uri, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod()), Poco::Message::PRIO_TRACE);
+		logger->log(msg);
 		Poco::StringTokenizer tokenizer(uri, "/", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 		int n = tokenizer.count();
 		std::string preName("webcpp"), libName("home"), className("index");
@@ -58,7 +72,7 @@ namespace webcpp {
 			className = tokenizer[1];
 		}
 
-		std::string libPath(serverConf.getString("libHandlerDir", "/usr/lib") + "/" + libName + Poco::SharedLibrary::suffix());
+		std::string libPath(this->serverConf.getString("libHandlerDir", "/usr/lib") + "/" + libName + Poco::SharedLibrary::suffix());
 		if (!Poco::File(libPath).exists()) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}
