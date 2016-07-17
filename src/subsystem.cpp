@@ -20,12 +20,12 @@ namespace webcpp {
 	{
 		webcpp::conf serverConf(app.config());
 		Poco::Net::HTTPServerParams* pars = new Poco::Net::HTTPServerParams;
-		pars->setMaxQueued(serverConf.getInt("maxQueued", 100));
-		pars->setMaxThreads(serverConf.getInt("maxThreads", 50));
+		pars->setMaxQueued(serverConf.getInt("maxQueued", 1024));
+		pars->setMaxThreads(serverConf.getInt("maxThreads", 2048));
 		pars->setSoftwareVersion(serverConf.getString("softwareVersion", "webcppd/1.0.0"));
 		pars->setKeepAlive(serverConf.getBool("keepAlive", true));
 		pars->setMaxKeepAliveRequests(serverConf.getInt("maxKeepAliveRequests", 0));
-		pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("keepAliveTimeout", 75), 0));
+		pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("keepAliveTimeout", 60), 0));
 		pars->setTimeout(Poco::Timespan(serverConf.getInt("timeout", 60), 0));
 		this->server = new Poco::Net::HTTPServer(new webcpp::factory(), serverConf.getUInt("port", 8888), pars);
 		this->server->start();
