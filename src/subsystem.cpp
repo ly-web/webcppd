@@ -27,9 +27,16 @@ namespace webcpp {
 		pars->setMaxKeepAliveRequests(serverConf.getInt("maxKeepAliveRequests", 0));
 		pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("keepAliveTimeout", 60), 0));
 		pars->setTimeout(Poco::Timespan(serverConf.getInt("timeout", 60), 0));
-		this->server = new Poco::Net::HTTPServer(new webcpp::factory(), serverConf.getUInt("port", 8888), pars);
-		this->server->start();
 
+		Poco::ThreadPool &pool = Poco::ThreadPool::defaultPool();
+		pool.addCapacity(serverConf.getInt("maxThreads", 2048));
+
+		Poco::Net::ServerSocket serverSocket;
+		serverSocket.bind(serverConf.getUInt("port", 8888), false);
+		serverSocket.listen(serverConf.getInt("maxQueued", 1024));
+		serverSocket.acceptConnection();
+		this->server = new Poco::Net::HTTPServer(new webcpp::factory(), pool, serverSocket, pars);
+		this->server->start();
 	}
 
 	void subsystem::uninitialize()
