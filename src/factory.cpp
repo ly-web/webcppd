@@ -51,11 +51,21 @@ namespace webcpp {
 
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
-		if (this->serverConf.getBool("ipEnableCheck", false) && !webcpp::checkip(request.clientAddress().host().toString(), this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
-			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+		std::string clientIp = request.clientAddress().host().toString();
+		if (this->serverConf.getBool("proxyUsed", false)) {
+			std::string realIp = request.get(this->serverConf.getString("proxyServerRealIpHeader", "X-Real-IP"));
+			if (!realIp.empty()) {
+				clientIp = realIp;
+			}
+		}
+		if (this->serverConf.getBool("ipEnableCheck", false)) {
+			if (!webcpp::checkip(clientIp, this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
+				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+			}
+
 		}
 		std::string uri = Poco::URI(request.getURI()).getPath();
-		Poco::Message msg("webcppd.logger", Poco::format("%[3]s %[0]s %[2]s %[4]s %[1]s", request.clientAddress().toString(), uri, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod()), Poco::Message::PRIO_TRACE);
+		Poco::Message msg("webcppd.logger", Poco::format("%[3]s %[0]s %[2]s %[4]s %[1]s", clientIp, uri, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod()), Poco::Message::PRIO_TRACE);
 		logger->log(msg);
 		Poco::StringTokenizer tokenizer(uri, "/", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 		int n = tokenizer.count();
