@@ -32,7 +32,9 @@ namespace webcpp {
 		pool.addCapacity(serverConf.getInt("maxThreads", 2048));
 
 		Poco::Net::ServerSocket serverSocket;
-		serverSocket.bind(serverConf.getUInt("port", 8888), false);
+		Poco::Net::IPAddress ipAddr(serverConf.getString("ip", "127.0.0.1"));
+		Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("port", 8888));
+		serverSocket.bind(socketAddr, false);
 		serverSocket.listen(serverConf.getInt("maxQueued", 1024));
 		serverSocket.acceptConnection();
 		this->server = new Poco::Net::HTTPServer(new webcpp::factory(), pool, serverSocket, pars);
