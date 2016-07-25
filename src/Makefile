@@ -2,8 +2,8 @@ PRO=../$(shell basename `realpath ..`)
 SRC=$(wildcard *.cpp)
 OBJ=$(patsubst %.cpp,%.o,${SRC})
 
-CXXFLAGS+=-O3 -std=c++11
-LIBS+= -lmemcached -lPocoUtil -lPocoNet -lPocoFoundation
+CXXFLAGS+=-O3 -std=c++11 -Wall
+LIBS+=-lPocoUtil -lPocoNet -lPocoFoundation
 
 all:$(PRO)
 	

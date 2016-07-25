@@ -19,12 +19,12 @@
 
 #include "factory.hpp"
 #include "error.hpp"
-#include "checkip.hpp"
 #include "conf.hpp"
 
 namespace webcpp {
 
 	factory::factory() : serverConf(Poco::Util::Application::instance().config())
+	, ipfilter(serverConf.getInt("ipDenyExpire", 3600)*1000, serverConf.getInt("ipAccessInterVal", 10)*1000)
 	, logger(new Poco::FileChannel(serverConf.getString("logDirectory", "/var/www") + "/webcppd.log"))
 	, classLoader()
 	{
@@ -59,7 +59,8 @@ namespace webcpp {
 			}
 		}
 		if (this->serverConf.getBool("ipEnableCheck", false)) {
-			if (!webcpp::checkip(clientIp, this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
+			//if (!webcpp::checkip(clientIp, this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
+			if (this->ipfilter.deny(clientIp, this->serverConf.getInt("ipMaxAccessCount", 10))) {
 				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 			}
 

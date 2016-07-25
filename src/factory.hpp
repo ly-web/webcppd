@@ -9,6 +9,7 @@
 #include <Poco/AutoPtr.h>
 #include <Poco/FileChannel.h>
 #include "conf.hpp"
+#include "ipfilter.hpp"
 
 namespace webcpp {
 
@@ -19,6 +20,7 @@ namespace webcpp {
         Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
     private:
         webcpp::conf serverConf;
+        webcpp::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
     };
