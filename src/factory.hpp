@@ -22,7 +22,7 @@ namespace webcpp {
         webcpp::conf serverConf;
         webcpp::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
-        Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory> classLoader;
+        Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
     };
 }
 #endif /* FACTORY_HPP */

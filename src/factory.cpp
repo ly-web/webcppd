@@ -37,7 +37,7 @@ namespace webcpp {
 	{
 		this->logger->close();
 		std::vector<std::string> libpath;
-		Poco::ClassLoader<Poco::Net::HTTPRequestHandlerFactory>::Iterator it = this->classLoader.begin();
+		Poco::ClassLoader<Poco::Net::HTTPRequestHandler>::Iterator it = this->classLoader.begin();
 
 		for (; it != this->classLoader.end(); ++it) {
 			libpath.push_back(it->first);
@@ -87,7 +87,7 @@ namespace webcpp {
 		if (!Poco::File(libPath).exists()) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}
-		std::string fullClassName = Poco::format("%[0]s::%[1]s::%[2]sFactory", preName, libName, className);
+		std::string fullClassName = Poco::format("%[0]s::%[1]s::%[2]s", preName, libName, className);
 
 
 		if (!this->classLoader.isLibraryLoaded(libPath)) {
@@ -98,7 +98,7 @@ namespace webcpp {
 			}
 		}
 
-		Poco::Net::HTTPRequestHandlerFactory* handler = 0;
+		Poco::Net::HTTPRequestHandler* handler = 0;
 		auto finded = this->classLoader.findClass(fullClassName);
 		if (finded != 0 && finded->canCreate()) {
 			handler = this->classLoader.create(fullClassName);
@@ -108,7 +108,7 @@ namespace webcpp {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, fullClassName + " is not exists.");
 		}
 
-		return handler->createRequestHandler(request);
+		return handler;
 	}
 
 }
