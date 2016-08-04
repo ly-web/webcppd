@@ -10,6 +10,16 @@
 * PocoNet 
 * PocoFoundation
 
+# 安装依赖
+##  Centos:
+`yum -y install epel-release`
+
+`yum -y install poco-devel`
+
+## Ubuntu
+`apt-get -y install libpoco-dev`
+
+
 # 使用方法
 webcppd是基于动态库加载的web动态服务器
 
@@ -34,5 +44,5 @@ make stop
 即可
 
 # 入门
-* [Poco HTTP 服务器插件式开发入门](http://www.webcpp.net/blog/post/97.html)
+* [webcppd 插件式 web 开发入门](https://github.com/webcpp/webcppd-example)
 * [webcppd 服务器官网](http://dev.webcpp.net)
