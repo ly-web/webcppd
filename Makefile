@@ -7,7 +7,7 @@ clean:
 	cd src && make clean && cd ..
 	
 run:
-	./$(PRO) --daemon
+	./$(PRO) --daemon --pidfile=webcppd.pid
 
 stop:
-	kill `pidof $(PRO)`
+	kill -9 `cat webcppd.pid`
