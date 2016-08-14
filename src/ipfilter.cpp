@@ -8,8 +8,8 @@ namespace webcpp {
 	ipfilter::ipfilter(long ipDenyExpire, long ipAccessInterval) :
 	ipDenyExpire(ipDenyExpire)
 	, ipAccessInterval(ipAccessInterval)
-	, cache(ipDenyExpire)
-	, blackIp(ipAccessInterval)
+	, cache(ipAccessInterval)
+	, blackIp(ipDenyExpire)
 	{
 
 	}
