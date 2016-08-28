@@ -19,16 +19,15 @@
 
 #include "factory.hpp"
 #include "error.hpp"
-#include "conf.hpp"
 
 namespace webcpp {
 
 	factory::factory() : serverConf(Poco::Util::Application::instance().config())
-	, ipfilter(serverConf.getInt("ipDenyExpire", 3600)*1000, serverConf.getInt("ipAccessInterVal", 10)*1000)
-	, logger(new Poco::FileChannel(serverConf.getString("logDirectory", "/var/www") + "/webcppd.log"))
+	, ipfilter(serverConf.getInt("http.ipDenyExpire", 3600)*1000, serverConf.getInt("http.ipAccessInterVal", 10)*1000)
+	, logger(new Poco::FileChannel(serverConf.getString("http.logDirectory", "/var/www") + "/webcppd.log"))
 	, classLoader()
 	{
-		this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("logFileSize", "10M"));
+		this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("http.logFileSize", "10M"));
 		this->logger->open();
 
 	}
@@ -52,15 +51,15 @@ namespace webcpp {
 	Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request)
 	{
 		std::string clientIp = request.clientAddress().host().toString();
-		if (this->serverConf.getBool("proxyUsed", false)) {
-			std::string realIp = request.get(this->serverConf.getString("proxyServerRealIpHeader", "X-Real-IP"));
+		if (this->serverConf.getBool("http.proxyUsed", false)) {
+			std::string realIp = request.get(this->serverConf.getString("http.proxyServerRealIpHeader", "X-Real-IP"));
 			if (!realIp.empty()) {
 				clientIp = realIp;
 			}
 		}
-		if (this->serverConf.getBool("ipEnableCheck", false)) {
+		if (this->serverConf.getBool("http.ipEnableCheck", false)) {
 			//if (!webcpp::checkip(clientIp, this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
-			if (this->ipfilter.deny(clientIp, this->serverConf.getInt("ipMaxAccessCount", 10))) {
+			if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 10))) {
 				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 			}
 
@@ -83,7 +82,7 @@ namespace webcpp {
 			className = tokenizer[1];
 		}
 
-		std::string libPath(this->serverConf.getString("libHandlerDir", "/usr/lib") + "/" + libName + Poco::SharedLibrary::suffix());
+		std::string libPath(this->serverConf.getString("http.libHandlerDir", "/usr/lib") + "/" + libName + Poco::SharedLibrary::suffix());
 		if (!Poco::File(libPath).exists()) {
 			return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND, libName + " is not found.");
 		}

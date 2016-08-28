@@ -1,4 +1,4 @@
-PRO=../$(shell basename `realpath ..`)
+PRO=../webcppd
 SRC=$(wildcard *.cpp)
 OBJ=$(patsubst %.cpp,%.o,${SRC})
 

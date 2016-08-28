@@ -1,6 +1,7 @@
 #include <Poco/Util/Option.h>
 #include <Poco/Util/OptionSet.h>
 #include <Poco/Util/HelpFormatter.h>
+#include <Poco/Net/HTTPServer.h>
 #include <Poco/Util/Application.h>
 #include <Poco/Util/ServerApplication.h>
 
@@ -16,11 +17,10 @@ namespace webcpp {
         void uninitialize();
         void defineOptions(Poco::Util::OptionSet& options);
         void handleOption(const std::string& name, const std::string& value);
-        void displayHelp();
         int main(const std::vector<std::string>& args);
     private:
         bool helpRequested;
-        std::string confFile;
+        Poco::Net::HTTPServer *httpServer;
     };
 
 }
