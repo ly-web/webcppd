@@ -1,7 +1,4 @@
-#include <Poco/Util/Option.h>
-#include <Poco/Util/OptionSet.h>
-#include <Poco/Util/HelpFormatter.h>
-#include <Poco/Net/HTTPServer.h>
+
 #include <Poco/Util/Application.h>
 #include <Poco/Util/ServerApplication.h>
 
@@ -20,7 +17,6 @@ namespace webcpp {
         int main(const std::vector<std::string>& args);
     private:
         bool helpRequested;
-        Poco::Net::HTTPServer *httpServer;
     };
 
 }

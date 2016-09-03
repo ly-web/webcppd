@@ -1,4 +1,8 @@
 #include <iostream>
+#include <Poco/Util/Option.h>
+#include <Poco/Util/OptionSet.h>
+#include <Poco/Util/HelpFormatter.h>
+#include <Poco/Net/HTTPServer.h>
 #include <Poco/ThreadPool.h>
 #include <Poco/Net/HTTPServerParams.h>
 #include <Poco/Net/ServerSocket.h>
@@ -9,7 +13,7 @@
 
 namespace webcpp {
 
-	server::server() : helpRequested(false), httpServer(0)
+	server::server() : helpRequested(false)
 	{
 
 	}
@@ -30,10 +34,6 @@ namespace webcpp {
 
 	void server::uninitialize()
 	{
-		if (this->httpServer) {
-			this->httpServer->stopAll(true);
-			delete this->httpServer;
-		}
 		Poco::Util::ServerApplication::uninitialize();
 	}
 
@@ -92,11 +92,12 @@ namespace webcpp {
 			serverSocket.bind(socketAddr, false);
 			serverSocket.listen(serverConf.getInt("http.maxQueued", 1024));
 			serverSocket.acceptConnection();
-			this->httpServer = new Poco::Net::HTTPServer(new webcpp::factory(), pool, serverSocket, pars);
-			this->httpServer->start();
+			Poco::Net::HTTPServer httpServer(new webcpp::factory(), pool, serverSocket, pars);
+			httpServer.start();
 
 			// wait for CTRL-C or kill
 			this->waitForTerminationRequest();
+			httpServer.stopAll(true);
 		}
 		return Poco::Util::Application::EXIT_OK;
 	}

@@ -33,3 +33,4 @@
 /tpl/*
 /log/*
 /webcppd.pid
+/exists.sh
