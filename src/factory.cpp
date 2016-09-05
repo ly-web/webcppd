@@ -58,11 +58,9 @@ namespace webcpp {
 			}
 		}
 		if (this->serverConf.getBool("http.ipEnableCheck", false)) {
-			//if (!webcpp::checkip(clientIp, this->serverConf.getInt("ipDenyExpire", 3600), this->serverConf.getInt("ipMaxAccessCount", 10), this->serverConf.getInt("ipAccessInterval", 10))) {
 			if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 10))) {
 				return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
 			}
-
 		}
 		std::string uri = Poco::URI(request.getURI()).getPath();
 		Poco::Message msg("webcppd.logger", Poco::format("%[3]s %[0]s %[2]s %[4]s %[1]s", clientIp, uri, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod()), Poco::Message::PRIO_TRACE);
