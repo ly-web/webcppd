@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <Poco/ExpireCache.h>
 
 
@@ -12,16 +13,17 @@ namespace webcpp {
     class ipfilter {
     public:
         ipfilter() = delete;
-        ipfilter(long ipDenyExpire, long ipAccessInterval);
+        ipfilter(long ipDenyExpire, long ipAccessInterval,const std::string& ipDenyFile="");
         ipfilter(const ipfilter&) = delete;
         virtual ~ipfilter();
     public:
         bool deny(const std::string& ip, int ipMaxAccessCount);
-
+        
     private:
         time_t ipDenyExpire, ipAccessInterval;
         Poco::ExpireCache<std::string, std::pair<long, time_t> > cache;
         Poco::ExpireCache<std::string, int> blackIp;
+        std::vector<std::string> denyIp;
     };
 }
 
