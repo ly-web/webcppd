@@ -1,6 +1,6 @@
-/lib/*.so
-/nbproject/
-/webcppd
+*.so
+nbproject/
+webcppd
 # Compiled Object files
 *.slo
 *.lo
@@ -29,8 +29,8 @@
 *.exe
 *.out
 *.app
-/www/*
-/tpl/*
-/log/*
-/webcppd.pid
-/exists.sh
+www/
+tpl/
+log/
+etc/
+webcppd.pid
