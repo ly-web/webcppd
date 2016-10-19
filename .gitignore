@@ -32,5 +32,5 @@ webcppd
 www/
 tpl/
 log/
-etc/
+etc/ipdeny.conf
 webcppd.pid
