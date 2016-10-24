@@ -6,6 +6,7 @@
 #include <Poco/ThreadPool.h>
 #include <Poco/Net/HTTPServerParams.h>
 #include <Poco/Net/ServerSocket.h>
+#include <Poco/File.h>
 
 #include "factory.hpp"
 
@@ -13,93 +14,99 @@
 
 namespace webcpp {
 
-	server::server() : helpRequested(false)
-	{
+    server::server() : helpRequested(false) {
 
-	}
+    }
 
-	server::~server()
-	{
+    server::~server() {
 
 
-	}
+    }
 
-	void server::initialize(Poco::Util::Application& self)
-	{
+    void server::initialize(Poco::Util::Application& self) {
+        Poco::Util::ServerApplication::initialize(self);
+    }
 
-		this->loadConfiguration();
+    void server::uninitialize() {
+        Poco::Util::ServerApplication::uninitialize();
+    }
 
-		Poco::Util::ServerApplication::initialize(self);
-	}
+    void server::displayHelp() {
+        Poco::Util::HelpFormatter helpFormatter(options());
+        helpFormatter.setCommand(commandName());
+        helpFormatter.setUsage("OPTIONS");
+        helpFormatter.setHeader(
+                "A web server, based on POCO C++ library."
+                "\nThe configuration file(s) must be located in the same directory."
+                "\nAnd must have the same base name as the executable,"
+                "\nwith one of the following extensions :.properties, .ini or .xml."
+                );
+        helpFormatter.setFooter(
+                "\nEmail:admin@webcpp.net"
+                "\nSite:http://www.webcpp.net"
+                );
+        helpFormatter.format(std::cout);
+    }
 
-	void server::uninitialize()
-	{
-		Poco::Util::ServerApplication::uninitialize();
-	}
+    void server::defineOptions(Poco::Util::OptionSet& options) {
+        Poco::Util::ServerApplication::defineOptions(options);
+        options.addOption(
+                Poco::Util::Option("help", "h", "display help information on command line arguments")
+                .required(false)
+                .repeatable(false)
+                .callback(Poco::Util::OptionCallback<webcpp::server>(this, &webcpp::server::handleHelp)));
 
-	void server::defineOptions(Poco::Util::OptionSet& options)
-	{
-		Poco::Util::ServerApplication::defineOptions(options);
-		options.addOption(
-			Poco::Util::Option("help", "h",
-			"display help information on command line arguments")
-			.required(false)
-			.repeatable(false));
-	}
+        options.addOption(
+                Poco::Util::Option("config", "c", "load configuration data from a file")
+                .required(true)
+                .repeatable(true)
+                .argument("file")
+                .callback(Poco::Util::OptionCallback<webcpp::server>(this, &webcpp::server::handleConfig)));
 
-	void server::handleOption(const std::string& name, const std::string& value)
-	{
-		Poco::Util::ServerApplication::handleOption(name, value);
-		if (name == "help") {
-			Poco::Util::HelpFormatter hf(this->options());
-			hf.setCommand(commandName());
-			hf.setUsage("OPTIONS");
-			hf.setHeader("A web server, based on POCO C++ library."
-				"\nThe configuration file(s) must be located in the same directory."
-				"\nAnd must have the same base name as the executable,"
-				"\nwith one of the following extensions :.properties, .ini or .xml."
-				"\nEmail:admin@webcpp.net"
-				"\nSite:http://www.webcpp.net");
+    }
 
-			hf.setUnixStyle(true);
+    void server::handleHelp(const std::string& name, const std::string& value) {
+        this->helpRequested = true;
+        this->displayHelp();
+        this->stopOptionsProcessing();
+    }
 
-			hf.setFooter("");
-			hf.format(std::cout);
-			this->stopOptionsProcessing();
-			this->helpRequested = true;
-		}
-	}
+    void server::handleConfig(const std::string& name, const std::string& value) {
+        this->loadConfiguration(value);
+    }
 
-	int server::main(const std::vector<std::string>& args)
-	{
-		if (!helpRequested) {
-			Poco::Util::LayeredConfiguration &serverConf = this->config();
-			Poco::Net::HTTPServerParams* pars = new Poco::Net::HTTPServerParams;
-			pars->setMaxQueued(serverConf.getInt("http.maxQueued", 1024));
-			pars->setMaxThreads(serverConf.getInt("http.maxThreads", 2048));
-			pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.0"));
-			pars->setKeepAlive(serverConf.getBool("http.keepAlive", true));
-			pars->setMaxKeepAliveRequests(serverConf.getInt("http.maxKeepAliveRequests", 0));
-			pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("http.keepAliveTimeout", 60), 0));
-			pars->setTimeout(Poco::Timespan(serverConf.getInt("http.timeout", 60), 0));
+    int server::main(const std::vector<std::string>& args) {
+        if (!helpRequested) {
+            Poco::Util::LayeredConfiguration &serverConf = this->config();
+            Poco::Net::HTTPServerParams* pars = new Poco::Net::HTTPServerParams;
+            pars->setMaxQueued(serverConf.getInt("http.maxQueued", 1024));
+            pars->setMaxThreads(serverConf.getInt("http.maxThreads", 2048));
+            pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.0"));
+            pars->setKeepAlive(serverConf.getBool("http.keepAlive", true));
+            pars->setMaxKeepAliveRequests(serverConf.getInt("http.maxKeepAliveRequests", 0));
+            pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("http.keepAliveTimeout", 60), 0));
+            pars->setTimeout(Poco::Timespan(serverConf.getInt("http.timeout", 60), 0));
 
-			Poco::ThreadPool &pool = Poco::ThreadPool::defaultPool();
-			pool.addCapacity(serverConf.getInt("http.maxThreads", 2048));
+            Poco::ThreadPool &pool = Poco::ThreadPool::defaultPool();
+            pool.addCapacity(serverConf.getInt("http.maxThreads", 2048));
 
-			Poco::Net::ServerSocket serverSocket;
-			Poco::Net::IPAddress ipAddr(serverConf.getString("http.ip", "127.0.0.1"));
-			Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", 8888));
-			serverSocket.bind(socketAddr, false);
-			serverSocket.listen(serverConf.getInt("http.maxQueued", 1024));
-			serverSocket.acceptConnection();
-			Poco::Net::HTTPServer httpServer(new webcpp::factory(), pool, serverSocket, pars);
-			httpServer.start();
+            Poco::Net::ServerSocket serverSocket;
+            Poco::Net::IPAddress ipAddr(serverConf.getString("http.ip", "127.0.0.1"));
+            Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", 8888));
+            serverSocket.bind(socketAddr, false);
+            serverSocket.listen(serverConf.getInt("http.maxQueued", 1024));
+            serverSocket.acceptConnection();
+            webcpp::factory * factory = new webcpp::factory();
+            Poco::Net::HTTPServer httpServer(factory, pool, serverSocket, pars);
+            httpServer.start();
+            Poco::Util::Application::instance().logger().information("server start.");
+            // wait for CTRL-C or kill
+            this->waitForTerminationRequest();
+            Poco::Util::Application::instance().logger().information("server stop.");
+            httpServer.stop();
 
-			// wait for CTRL-C or kill
-			this->waitForTerminationRequest();
-			httpServer.stopAll(true);
-		}
-		return Poco::Util::Application::EXIT_OK;
-	}
+        }
+        return Poco::Util::Application::EXIT_OK;
+    }
 
 }
