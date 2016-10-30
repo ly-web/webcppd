@@ -2,6 +2,7 @@
 #define FACTORY_HPP
 
 #include <string>
+#include <map>
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/HTTPServerRequest.h>
@@ -24,6 +25,7 @@ namespace webcpp {
         webcpp::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
+        std::map<std::string,std::string> route;
     };
 }
 #endif /* FACTORY_HPP */

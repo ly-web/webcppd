@@ -79,22 +79,22 @@ namespace webcpp {
         if (!helpRequested) {
             Poco::Util::LayeredConfiguration &serverConf = this->config();
             Poco::Net::HTTPServerParams* pars = new Poco::Net::HTTPServerParams;
-            pars->setMaxQueued(serverConf.getInt("http.maxQueued", 1024));
-            pars->setMaxThreads(serverConf.getInt("http.maxThreads", 2048));
-            pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.0"));
+            pars->setMaxQueued(serverConf.getInt("http.maxQueued", 1000));
+            pars->setMaxThreads(serverConf.getInt("http.maxThreads", 1023));
+            pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.2"));
             pars->setKeepAlive(serverConf.getBool("http.keepAlive", true));
             pars->setMaxKeepAliveRequests(serverConf.getInt("http.maxKeepAliveRequests", 0));
             pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("http.keepAliveTimeout", 60), 0));
             pars->setTimeout(Poco::Timespan(serverConf.getInt("http.timeout", 60), 0));
 
             Poco::ThreadPool &pool = Poco::ThreadPool::defaultPool();
-            pool.addCapacity(serverConf.getInt("http.maxThreads", 2048));
+            pool.addCapacity(serverConf.getInt("http.maxThreads", 1023));
 
             Poco::Net::ServerSocket serverSocket;
             Poco::Net::IPAddress ipAddr(serverConf.getString("http.ip", "127.0.0.1"));
-            Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", 8888));
+            Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", 80));
             serverSocket.bind(socketAddr, false);
-            serverSocket.listen(serverConf.getInt("http.maxQueued", 1024));
+            serverSocket.listen(serverConf.getInt("http.maxQueued", 1000));
             serverSocket.acceptConnection();
             webcpp::factory * factory = new webcpp::factory();
             Poco::Net::HTTPServer httpServer(factory, pool, serverSocket, pars);
@@ -104,7 +104,6 @@ namespace webcpp {
             this->waitForTerminationRequest();
             Poco::Util::Application::instance().logger().information("server stop.");
             httpServer.stop();
-
         }
         return Poco::Util::Application::EXIT_OK;
     }

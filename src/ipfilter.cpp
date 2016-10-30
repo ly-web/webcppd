@@ -14,9 +14,9 @@ namespace webcpp {
     , blackIp(ipDenyExpire)
     , denyIp() {
         if (!ipDenyFile.empty() && Poco::File(ipDenyFile).exists()) {
-            std::string ip;
             std::ifstream input(ipDenyFile);
             if (input) {
+                std::string ip;
                 while (std::getline(input, ip)) {
                     this->denyIp.push_back(ip);
                 }
@@ -30,9 +30,13 @@ namespace webcpp {
         this->denyIp.clear();
     }
 
+    bool ipfilter::kill(const std::string& ip) {
+        return std::find(this->denyIp.begin(), this->denyIp.end(), ip) != this->denyIp.end();
+    }
+
     bool ipfilter::deny(const std::string& ip, int ipMaxAccessCount) {
         bool deny = true;
-        if (std::find(this->denyIp.begin(), this->denyIp.end(), ip) != this->denyIp.end() || this->blackIp.has(ip)) {
+        if (this->blackIp.has(ip)) {
             return deny;
         }
 

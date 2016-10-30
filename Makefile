@@ -5,9 +5,10 @@ all:
 
 clean:
 	cd src && make clean && cd ..
-	
-run:
-	./$(PRO) --daemon --pidfile=webcppd.pid
 
-stop:
-	kill -9 `cat webcppd.pid`
+
+install:
+	cd src && make install
+	
+uninstall:
+	cd src && make uninstall
