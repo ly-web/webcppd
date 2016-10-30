@@ -28,8 +28,7 @@ install:
 	mkdir -pv /var/www/webcppd/www
 	mkdir -pv /var/www/webcppd/www/upload
 	install ../$(PRO) $(INSTALL_DIR)
-	install ../$(PRO).properties $(CONFIG_DIR)
-	install ../etc/*.* $(CONFIG_DIR)
+	install -b ../etc/*.* $(CONFIG_DIR)
 	install ../www/*.* /var/www/webcppd/www
 	install ../script/webcppd-ctrl.sh $(LN_DIR)
 	install ../script/webcppd-service.sh $(LN_DIR)

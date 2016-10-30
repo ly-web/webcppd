@@ -112,7 +112,7 @@ namespace webcpp {
         std::string path = Poco::URI(request.getURI()).getPath();
         Poco::Util::Application::instance().logger().notice("%[3]s %[0]s %[2]s %[4]s %[1]s", clientIp, path, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod());
 
-        Poco::RegularExpression reg("\\/([^\\/\\s\\d]+)\\/?.*");
+        Poco::RegularExpression reg("^\\/([^\\/\\s\\d]+)\\/?.*");
         std::vector<std::string> container;
         int c = 0;
         std::string fullClassName;
