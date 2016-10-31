@@ -47,7 +47,7 @@ namespace webcpp {
                                 , Poco::DateTimeFormatter::format(dt, Poco::DateTimeFormat::SORTABLE_FORMAT)
                                 , clientIp
                                 , request.get("User-Agent")
-                                , path.toString()
+                                , url
                                 , request.getMethod()
                                 , static_cast<int> (response.getStatus())
                                 );
@@ -64,7 +64,7 @@ namespace webcpp {
                         , Poco::DateTimeFormatter::format(dt, Poco::DateTimeFormat::SORTABLE_FORMAT)
                         , clientIp
                         , request.get("User-Agent")
-                        , path.toString()
+                        , url
                         , request.getMethod()
                         , static_cast<int> (response.getStatus())
                         );
