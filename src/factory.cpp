@@ -102,15 +102,16 @@ namespace webcpp {
             }
         }
         if (this->ipfilter.kill(clientIp)) {
+            Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
             return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
         }
         if (this->serverConf.getBool("http.ipEnableCheck", false)) {
             if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
+                Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
                 return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
         }
         std::string path = Poco::URI(request.getURI()).getPath();
-        Poco::Util::Application::instance().logger().notice("%[3]s %[0]s %[2]s %[4]s %[1]s", clientIp, path, request.get("User-Agent"), Poco::DateTimeFormatter::format(Poco::LocalDateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT), request.getMethod());
 
         Poco::RegularExpression reg("^\\/([^\\/\\s\\d]+)\\/?.*");
         std::vector<std::string> container;

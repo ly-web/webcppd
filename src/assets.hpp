@@ -12,7 +12,7 @@ namespace webcpp {
 
     class assets : public Poco::Net::HTTPRequestHandler {
     public:
-        void handleRequest(Poco::Net::HTTPServerRequest& req, Poco::Net::HTTPServerResponse& res);
+        void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
     };
 
 }
