@@ -12,7 +12,7 @@ LIBS+=-lPocoUtil -lPocoNet -lPocoFoundation
 all:$(PRO)
 	
 $(PRO):$(OBJ)
-	g++ $(CXXFLAGS) $(LIBS) -o ../$@ $^
+	g++ -o ../$@ $^ $(CXXFLAGS) $(LIBS) 
 	
 clean:
 	rm -f $(OBJ) ../$(PRO)
