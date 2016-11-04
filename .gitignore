@@ -29,7 +29,3 @@ webcppd
 *.exe
 *.out
 *.app
-www/
-tpl/
-log/
-webcppd.pid
