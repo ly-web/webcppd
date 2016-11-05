@@ -16,7 +16,10 @@ Fast and Lightweight Web Server for Applications Written in C++
 `yum -y install poco-devel`
 
 ### Ubuntu
-`apt-get -y install libpoco-dev`
+不要安装libpoco-dev，它的版本太低
+
+请执行`ubuntu-install-depend.sh`
+
 
 
 ## 编译
