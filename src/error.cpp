@@ -16,7 +16,7 @@ namespace webcpp {
 			<< static_cast<int> (res.getStatus())
 			<< " "
 			<< res.getReason()
-			<< "</title><body bgcolor=\"white\"><center><h1>"
+			<< "</title></head><body bgcolor=\"white\"><center><h1>"
 			<< static_cast<int> (res.getStatus())
 			<< " "
 			<< res.getReason()

@@ -133,11 +133,7 @@ namespace webcpp {
         }
 
         if (!handler) {
-            if (this->serverConf.getBool("http.enableIndex", true)) {
-                return new webcpp::assets();
-            } else {
-                return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
-            }
+            return new webcpp::assets();
         }
 
         return handler;
