@@ -6,7 +6,7 @@ INSTALL_DIR=/usr/local/bin
 CONFIG_DIR=/etc/webcppd
 LN_DIR=/usr/bin
 
-CXXFLAGS+=-O3 -std=c++11 -Wall
+CXXFLAGS+=-O3 -std=c++11 -Wall -I../include
 LIBS+=-lPocoUtil -lPocoNet -lPocoFoundation
 
 all:$(PRO)
@@ -34,6 +34,8 @@ install:
 	install ../script/webcppd-service.sh $(LN_DIR)
 	install ../script/webcppd.service /etc/systemd/system
 	ln -fs $(INSTALL_DIR)/$(PRO) $(LN_DIR)
+	mkdir -pv /usr/local/include/webcppd
+	install ../include/*.*  /usr/local/include/webcppd
 	
 	
 uninstall:

@@ -5,7 +5,7 @@
 #include <fstream>
 #include "ipfilter.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
     ipfilter::ipfilter(long ipDenyExpire, long ipAccessInterval, const std::string& ipDenyFile) :
     ipDenyExpire(ipDenyExpire)

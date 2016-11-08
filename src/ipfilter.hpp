@@ -8,7 +8,7 @@
 #include <Poco/ExpireCache.h>
 
 
-namespace webcpp {
+namespace webcppd {
 
     class ipfilter {
     public:

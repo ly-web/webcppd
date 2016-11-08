@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-namespace webcpp {
+namespace webcppd {
 
     class mime : protected std::map<std::string, std::string> {
     public:

@@ -1,6 +1,6 @@
 #include "mime.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
 	//static
 	const char *mime::src[][2] = {

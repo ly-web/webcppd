@@ -2,17 +2,26 @@
 #define ASSETS_HPP
 
 
-#include <Poco/Net/HTTPRequestHandler.h>
-#include <Poco/Net/HTTPServerResponse.h>
-#include <Poco/Net/HTTPServerRequest.h>
+#include "root_view.hpp"
 
 
+namespace webcppd {
 
-namespace webcpp {
+    class assets : public root_view {
+        void do_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 
-    class assets : public Poco::Net::HTTPRequestHandler {
-    public:
-        void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
+        void do_post(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            this->error(request, response);
+        }
+
+        void do_delete(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            this->error(request, response);
+        }
+
+        void do_put(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            this->error(request, response);
+        }
+
     };
 
 }

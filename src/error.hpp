@@ -1,19 +1,29 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 
-#include <Poco/Net/HTTPRequestHandler.h>
-#include <Poco/Net/HTTPServerResponse.h>
-#include <Poco/Net/HTTPServerRequest.h>
+#include "root_view.hpp"
 
-#include <iostream>
-#include <string>
+namespace webcppd {
 
-namespace webcpp {
+    class error : public root_view {
+        void do_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response);
 
-    class error : public Poco::Net::HTTPRequestHandler {
+        void do_post(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            root_view::error(request, response);
+        }
+
+        void do_delete(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            root_view::error(request, response);
+        }
+
+        void do_put(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            root_view::error(request, response);
+        }
+
     public:
         error(Poco::Net::HTTPServerResponse::HTTPStatus status, const std::string& message = "");
-        void handleRequest(Poco::Net::HTTPServerRequest& req, Poco::Net::HTTPServerResponse& res);
+
+
     private:
         const Poco::Net::HTTPServerResponse::HTTPStatus resStatus;
         std::string message;

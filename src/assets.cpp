@@ -14,9 +14,9 @@
 
 #include "assets.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
-    void assets::handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+    void assets::do_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
         Poco::Util::Application &app = Poco::Util::Application::instance();
         std::string clientIp = request.clientAddress().host().toString();
         if (app.config().getBool("http.proxyUsed", false)) {
@@ -45,14 +45,6 @@ namespace webcpp {
                         request.response().setContentLength(0);
                         request.response().setStatusAndReason(Poco::Net::HTTPResponse::HTTP_NOT_MODIFIED);
                         request.response().send();
-                        app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                                , Poco::DateTimeFormatter::format(dt, Poco::DateTimeFormat::SORTABLE_FORMAT)
-                                , clientIp
-                                , request.get("User-Agent")
-                                , url_path.toString()
-                                , request.getMethod()
-                                , static_cast<int> (response.getStatus())
-                                );
                         return;
                     }
                 }
@@ -60,27 +52,11 @@ namespace webcpp {
                 response.setChunkedTransferEncoding(true);
                 response.set("Cache-Control", Poco::format("max-age=%[0]d", app.config().getInt("http.expires", 3600)));
                 response.add("Cache-Control", "must-revalidate");
-                std::string mimeType = webcpp::mime().getType(full_path.getExtension());
+                std::string mimeType = webcppd::mime().getType(full_path.getExtension());
                 response.sendFile(full_path.toString(), mimeType);
-                app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                        , Poco::DateTimeFormatter::format(dt, Poco::DateTimeFormat::SORTABLE_FORMAT)
-                        , clientIp
-                        , request.get("User-Agent")
-                        , url_path.toString()
-                        , request.getMethod()
-                        , static_cast<int> (response.getStatus())
-                        );
             } else if (file.isDirectory()) {
                 if (!app.config().getBool("http.enableIndex", false)) {
                     response.redirect(url_path.append("/index.html").toString(), Poco::Net::HTTPServerResponse::HTTP_MOVED_PERMANENTLY);
-                    app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                            , Poco::DateTimeFormatter::format(Poco::DateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT)
-                            , clientIp
-                            , request.get("User-Agent")
-                            , url_path.toString()
-                            , request.getMethod()
-                            , static_cast<int> (response.getStatus())
-                            );
                     return;
                 }
                 Poco::SortedDirectoryIterator it(full_path), jt;
@@ -106,14 +82,6 @@ namespace webcpp {
                     ++it;
                 }
                 OS << "</ul></body></html>";
-                app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                        , Poco::DateTimeFormatter::format(Poco::DateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT)
-                        , clientIp
-                        , request.get("User-Agent")
-                        , url_path.toString()
-                        , request.getMethod()
-                        , static_cast<int> (response.getStatus())
-                        );
             } else {
                 response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
                 response.setContentType("text/html;charset=UTF-8");
@@ -127,14 +95,6 @@ namespace webcpp {
                         << response.getReason()
                         << "</h1></center><hr/>"
                         << "</body></html>";
-                app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                        , Poco::DateTimeFormatter::format(Poco::DateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT)
-                        , clientIp
-                        , request.get("User-Agent")
-                        , url_path.toString()
-                        , request.getMethod()
-                        , static_cast<int> (response.getStatus())
-                        );
             }
         } else {
             response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND);
@@ -149,14 +109,6 @@ namespace webcpp {
                     << response.getReason()
                     << "</h1></center><hr/>"
                     << "</body></html>";
-            app.logger().notice("%[0]s %[1]s %[2]s %[3]s %[4]s %[5]d"
-                    , Poco::DateTimeFormatter::format(Poco::DateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT)
-                    , clientIp
-                    , request.get("User-Agent")
-                    , url_path.toString()
-                    , request.getMethod()
-                    , static_cast<int> (response.getStatus())
-                    );
         }
     }
 

@@ -22,7 +22,7 @@
 #include "error.hpp"
 #include "assets.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
     factory::factory() : serverConf(Poco::Util::Application::instance().config())
     , ipfilter(serverConf.getInt("http.ipDenyExpire", 3600)*1000, serverConf.getInt("http.ipAccessInterval", 30)*1000, serverConf.getString("http.ipDenyFile", "/etc/webcppd/ipdeny.conf"))
@@ -103,12 +103,12 @@ namespace webcpp {
         }
         if (this->ipfilter.kill(clientIp)) {
             Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
-            return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+            return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
         }
         if (this->serverConf.getBool("http.ipEnableCheck", false)) {
             if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
                 Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
-                return new webcpp::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+                return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
         }
         std::string path = Poco::URI(request.getURI()).getPath();
@@ -133,7 +133,7 @@ namespace webcpp {
         }
 
         if (!handler) {
-            return new webcpp::assets();
+            return new webcppd::assets();
         }
 
         return handler;

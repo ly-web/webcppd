@@ -12,7 +12,7 @@
 
 #include "server.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
     server::server() : helpRequested(false) {
 
@@ -54,14 +54,14 @@ namespace webcpp {
                 Poco::Util::Option("help", "h", "display help information on command line arguments")
                 .required(false)
                 .repeatable(false)
-                .callback(Poco::Util::OptionCallback<webcpp::server>(this, &webcpp::server::handleHelp)));
+                .callback(Poco::Util::OptionCallback<webcppd::server>(this, &webcppd::server::handleHelp)));
 
         options.addOption(
                 Poco::Util::Option("config", "c", "load configuration data from a file")
                 .required(true)
                 .repeatable(true)
                 .argument("file")
-                .callback(Poco::Util::OptionCallback<webcpp::server>(this, &webcpp::server::handleConfig)));
+                .callback(Poco::Util::OptionCallback<webcppd::server>(this, &webcppd::server::handleConfig)));
 
     }
 
@@ -96,7 +96,7 @@ namespace webcpp {
             serverSocket.bind(socketAddr, false);
             serverSocket.listen(serverConf.getInt("http.maxQueued", 1000));
             serverSocket.acceptConnection();
-            webcpp::factory * factory = new webcpp::factory();
+            webcppd::factory * factory = new webcppd::factory();
             Poco::Net::HTTPServer httpServer(factory, pool, serverSocket, pars);
             httpServer.start();
             Poco::Util::Application::instance().logger().information("server start.");

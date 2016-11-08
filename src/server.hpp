@@ -5,7 +5,7 @@
 #include <Poco/AutoPtr.h>
 
 
-namespace webcpp {
+namespace webcppd {
 
     class server : public Poco::Util::ServerApplication {
     public:

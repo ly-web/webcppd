@@ -13,7 +13,7 @@
 
 #include "ipfilter.hpp"
 
-namespace webcpp {
+namespace webcppd {
 
     class factory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
@@ -22,7 +22,7 @@ namespace webcpp {
         Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
     private:
         Poco::Util::LayeredConfiguration &serverConf;
-        webcpp::ipfilter ipfilter;
+        webcppd::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
         std::map<std::string,std::string> route;
