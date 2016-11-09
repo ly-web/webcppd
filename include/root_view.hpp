@@ -21,6 +21,7 @@
 #include <Poco/File.h>
 #include <Poco/ExpirationDecorator.h>
 #include <Poco/UniqueExpireCache.h>
+#include <Poco/UUIDGenerator.h>
 
 
 
@@ -111,14 +112,13 @@ namespace webcppd {
             if (cookies.has(session_id_key)) {
                 return cookies.get(session_id_key);
             }
-            Poco::MD5Engine md5engine;
-            md5engine.update(request.clientAddress().host().toString() + Poco::DateTimeFormatter::format(Poco::DateTime(), Poco::DateTimeFormat::SORTABLE_FORMAT));
             Poco::Net::HTTPCookie cookie;
             cookie.setName(session_id_key);
-            cookie.setValue(Poco::MD5Engine::digestToHex(md5engine.digest()));
+            cookie.setValue(Poco::UUIDGenerator::defaultGenerator().createRandom().toString());
             cookie.setMaxAge(expire);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
+            cookie.setSecure(true);
             response.addCookie(cookie);
             root_view::root_session().add(cookie.getValue(), std::map<std::string, std::string>());
             return cookie.getValue();
