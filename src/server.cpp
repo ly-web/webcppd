@@ -81,7 +81,7 @@ namespace webcppd {
             Poco::Net::HTTPServerParams* pars = new Poco::Net::HTTPServerParams;
             pars->setMaxQueued(serverConf.getInt("http.maxQueued", 1000));
             pars->setMaxThreads(serverConf.getInt("http.maxThreads", 1023));
-            pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.2"));
+            pars->setSoftwareVersion(serverConf.getString("http.softwareVersion", "webcppd/1.0.3"));
             pars->setKeepAlive(serverConf.getBool("http.keepAlive", true));
             pars->setMaxKeepAliveRequests(serverConf.getInt("http.maxKeepAliveRequests", 0));
             pars->setKeepAliveTimeout(Poco::Timespan(serverConf.getInt("http.keepAliveTimeout", 60), 0));
