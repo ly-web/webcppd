@@ -44,7 +44,7 @@ namespace webcppd {
         if (input) {
             std::string line;
             while (std::getline(input, line)) {
-                if (!line.empty()) {
+                if (line.front() != '#' && !line.empty()) {
                     Poco::StringTokenizer st(line, ",;", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
                     std::size_t maxIndex = st.count() - 1;
                     if (maxIndex > 0) {
@@ -112,17 +112,14 @@ namespace webcppd {
             }
         }
         std::string path = Poco::URI(request.getURI()).getPath();
-
-        Poco::RegularExpression reg("^\\/([^\\/\\s\\d]+)\\/?.*");
-        std::vector<std::string> container;
-        int c = 0;
         std::string fullClassName;
-        if ((c = reg.split(path, container))) {
-            fullClassName = container[c - 1];
-        }
-        auto it = this->route.find(fullClassName);
-        if (it != this->route.end()) {
-            fullClassName = it->second;
+
+        for (auto &item : this->route) {
+            Poco::RegularExpression reg(item.first);
+            if (reg.match(path)) {
+                fullClassName = item.second;
+                break;
+            }
         }
 
         Poco::Net::HTTPRequestHandler* handler = 0;
