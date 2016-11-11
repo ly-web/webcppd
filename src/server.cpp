@@ -6,7 +6,11 @@
 #include <Poco/ThreadPool.h>
 #include <Poco/Net/HTTPServerParams.h>
 #include <Poco/Net/ServerSocket.h>
-#include <Poco/File.h>
+#include <Poco/Net/SecureServerSocket.h>
+#include <Poco/Net/SSLManager.h>
+#include <Poco/SharedPtr.h>
+#include <Poco/Net/SecureStreamSocket.h>
+#include <Poco/Exception.h>
 
 #include "factory.hpp"
 
@@ -15,12 +19,15 @@
 namespace webcppd {
 
     server::server() : helpRequested(false) {
-
+        if (this->config().getBool("http.enableSSL", true)) {
+            Poco::Net::initializeSSL();
+        }
     }
 
     server::~server() {
-
-
+        if (this->config().getBool("http.enableSSL", true)) {
+            Poco::Net::uninitializeSSL();
+        }
     }
 
     void server::initialize(Poco::Util::Application& self) {
@@ -90,19 +97,47 @@ namespace webcppd {
             Poco::ThreadPool &pool = Poco::ThreadPool::defaultPool();
             pool.addCapacity(serverConf.getInt("http.maxThreads", 1023));
 
-            Poco::Net::ServerSocket serverSocket;
+
             Poco::Net::IPAddress ipAddr(serverConf.getString("http.ip", "127.0.0.1"));
-            Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", 80));
-            serverSocket.bind(socketAddr, false);
-            serverSocket.listen(serverConf.getInt("http.maxQueued", 1000));
-            serverSocket.acceptConnection();
+            Poco::Net::SocketAddress socketAddr(ipAddr, serverConf.getUInt("http.port", serverConf.getBool("http.enableSSL", true) ? 443 : 80));
+
+
+            Poco::SharedPtr<Poco::Net::ServerSocket> serverSocket;
+
+            if (serverConf.getBool("http.enableSSL", true)) {
+                try {
+                    Poco::Net::Context::Ptr cptr(new Poco::Net::Context(
+                            Poco::Net::Context::SERVER_USE
+                            , serverConf.getString("http.certPrivateKeyFile", "/var/www/webcppd/cert/server.key")
+                            , serverConf.getString("http.certCertificateFile", "/var/www/webcppd/cert/server.crt")
+                            , serverConf.getString("http.certRootCertificateFile", "/var/www/webcppd/cert/rootCA.pem")
+                            , serverConf.getBool("http.certCheckClient", false) ? Poco::Net::Context::VERIFY_RELAXED : Poco::Net::Context::VERIFY_NONE
+                            , 9
+                            , false));
+                    serverSocket.assign(new Poco::Net::SecureServerSocket(cptr));
+                } catch (Poco::Exception& e) {
+                    std::cout << e.message() << std::endl;
+                }
+
+            } else {
+                serverSocket.assign(new Poco::Net::ServerSocket);
+            }
+            serverSocket->bind(socketAddr, false);
+            serverSocket->listen(serverConf.getInt("http.maxQueued", 1000));
+            serverSocket->acceptConnection();
+
             webcppd::factory * factory = new webcppd::factory();
-            Poco::Net::HTTPServer httpServer(factory, pool, serverSocket, pars);
+
+            Poco::Net::HTTPServer httpServer(factory, pool, *serverSocket, pars);
+
             httpServer.start();
+
             Poco::Util::Application::instance().logger().information("server start.");
             // wait for CTRL-C or kill
             this->waitForTerminationRequest();
+
             Poco::Util::Application::instance().logger().information("server stop.");
+
             httpServer.stop();
         }
         return Poco::Util::Application::EXIT_OK;

@@ -7,7 +7,7 @@ CONFIG_DIR=/etc/webcppd
 LN_DIR=/usr/bin
 
 CXXFLAGS+=-O3 -std=c++11 -Wall -I../include
-LIBS+=-lPocoUtil -lPocoNet -lPocoFoundation
+LIBS+=-lPocoUtil -lPocoNetSSL -lPocoCrypto -lPocoNet -lPocoFoundation
 
 all:$(PRO)
 	
@@ -27,12 +27,14 @@ install:
 	mkdir -pv /var/www/webcppd/mod
 	mkdir -pv /var/www/webcppd/www
 	mkdir -pv /var/www/webcppd/www/upload
+	mkdir -pv /var/www/webcppd/cert
 	install ../$(PRO) $(INSTALL_DIR)
 	install -b ../etc/*.* $(CONFIG_DIR)
 	install ../www/*.* /var/www/webcppd/www
 	install ../script/webcppd-ctrl.sh $(LN_DIR)
 	install ../script/webcppd-service.sh $(LN_DIR)
 	install ../script/webcppd.service /etc/systemd/system
+	install ../cert/*.* /var/www/webcppd/cert
 	ln -fs $(INSTALL_DIR)/$(PRO) $(LN_DIR)
 	mkdir -pv /usr/local/include/webcppd
 	install ../include/*.*  /usr/local/include/webcppd
