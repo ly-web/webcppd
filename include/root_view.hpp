@@ -118,7 +118,9 @@ namespace webcppd {
             cookie.setMaxAge(expire);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
-            cookie.setSecure(true);
+            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
+                cookie.setSecure(true);
+            }
             response.addCookie(cookie);
             root_view::root_session().add(cookie.getValue(), std::map<std::string, std::string>());
             return cookie.getValue();
