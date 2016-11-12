@@ -116,7 +116,7 @@ namespace webcppd {
                             , false));
                     serverSocket.assign(new Poco::Net::SecureServerSocket(cptr));
                 } catch (Poco::Exception& e) {
-                    std::cout << e.message() << std::endl;
+                    Poco::Util::Application::instance().logger().error(e.message());
                 }
 
             } else {
@@ -126,9 +126,9 @@ namespace webcppd {
             serverSocket->listen(serverConf.getInt("http.maxQueued", 1000));
             serverSocket->acceptConnection();
 
-            webcppd::factory * factory = new webcppd::factory();
+            Poco::Net::HTTPRequestHandlerFactory::Ptr factoryPtr(new webcppd::factory());
 
-            Poco::Net::HTTPServer httpServer(factory, pool, *serverSocket, pars);
+            Poco::Net::HTTPServer httpServer(factoryPtr, pool, *serverSocket, pars);
 
             httpServer.start();
 
