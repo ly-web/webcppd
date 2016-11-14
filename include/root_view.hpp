@@ -22,6 +22,7 @@
 #include <Poco/ExpirationDecorator.h>
 #include <Poco/UniqueExpireCache.h>
 #include <Poco/UUIDGenerator.h>
+#include <Poco/DynamicAny.h>
 
 
 
@@ -33,7 +34,7 @@ namespace webcppd {
     class root_view : public Poco::Net::HTTPRequestHandler {
     public:
 
-        typedef Poco::ExpireLRUCache<std::string, std::map<std::string, std::string>> root_session_t;
+        typedef Poco::ExpireLRUCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
 
         void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
@@ -122,12 +123,12 @@ namespace webcppd {
                 cookie.setSecure(true);
             }
             response.addCookie(cookie);
-            root_view::root_session().add(cookie.getValue(), std::map<std::string, std::string>());
+            root_view::root_session().add(cookie.getValue(), std::map<std::string, Poco::DynamicAny>());
             return cookie.getValue();
         }
     protected:
 
-        void session_set(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key, const std::string& value) {
+        void session_set(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key, const Poco::DynamicAny& value) {
             root_view::root_session().get(this->session_create(request, response))->operator[](key) = value;
         }
 
@@ -137,8 +138,34 @@ namespace webcppd {
             return item != tmp->end();
         }
 
-        std::string session_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key) {
+        Poco::DynamicAny session_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key) {
             return root_view::root_session().get(this->session_create(request, response))->operator[](key);
+        }
+
+        void session_remove(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key) {
+            root_view::root_session().get(this->session_create(request, response))->erase(key);
+        }
+
+        void session_clear(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            root_view::root_session().get(this->session_create(request, response))->clear();
+        }
+
+        void session_expired(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            std::string old_session_id = this->session_create(request, response);
+            root_view::root_session().remove(old_session_id);
+            const std::string session_id_key("WEBCPPDSESSIONID");
+            const int expire(600);
+            Poco::Net::HTTPCookie cookie;
+            cookie.setName(session_id_key);
+            cookie.setValue(old_session_id);
+            cookie.setMaxAge(expire);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
+                cookie.setSecure(true);
+            }
+            response.addCookie(cookie);
+            root_view::root_session().add(old_session_id, std::map<std::string, Poco::DynamicAny>());
         }
 
         void expired(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
