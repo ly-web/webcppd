@@ -110,7 +110,7 @@ namespace webcppd {
             const int expire(600);
             Poco::Net::NameValueCollection cookies;
             request.getCookies(cookies);
-            if (cookies.has(session_id_key)) {
+            if (cookies.has(session_id_key) && root_view::root_session().has(cookies.get(session_id_key))) {
                 return cookies.get(session_id_key);
             }
             Poco::Net::HTTPCookie cookie;
