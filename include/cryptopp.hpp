@@ -44,79 +44,72 @@ namespace webcppd {
         };
 
         static std::string hash(const std::string& str, const cryptopp::HASH_METHOD& method) {
-            using namespace CryptoPP;
-            std::auto_ptr <HashTransformation> tmp;
+            std::auto_ptr <CryptoPP::HashTransformation> tmp;
             switch (method) {
                 case cryptopp::HASH_METHOD::MD5_METHOD:
-                    tmp.reset(new Weak1::MD5);
+                    tmp.reset(new CryptoPP::Weak1::MD5);
                     break;
                 case cryptopp::HASH_METHOD::SHA1_METHOD:
-                    tmp.reset(new SHA1);
+                    tmp.reset(new CryptoPP::SHA1);
                     break;
                 case cryptopp::HASH_METHOD::SHA256_METHOD:
-                    tmp.reset(new SHA256);
+                    tmp.reset(new CryptoPP::SHA256);
                     break;
                 case cryptopp::HASH_METHOD::SHA512_METHOD:
-                    tmp.reset(new SHA512);
+                    tmp.reset(new CryptoPP::SHA512);
                     break;
                 default:
-                    tmp.reset(new Weak1::MD5);
+                    tmp.reset(new CryptoPP::Weak1::MD5);
                     break;
             }
             std::string dst;
-            StringSource(str, true, new HashFilter(*tmp, new HexEncoder(new StringSink(dst), false)));
+            CryptoPP::StringSource(str, true, new CryptoPP::HashFilter(*tmp, new CryptoPP::HexEncoder(new CryptoPP::StringSink(dst), false)));
             return dst;
         }
 
     public:
 
         std::string encode(const std::string & plaintext) {
-            using namespace CryptoPP;
             std::string ciphertext;
-            ECB_Mode<AES>::Encryption Encryptor(m_key, AES::DEFAULT_KEYLENGTH);
-            StringSource(plaintext, true, new StreamTransformationFilter(Encryptor, new StringSink(ciphertext))
+            CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption Encryptor(m_key, CryptoPP::AES::DEFAULT_KEYLENGTH);
+            CryptoPP::StringSource(plaintext, true, new CryptoPP::StreamTransformationFilter(Encryptor, new CryptoPP::StringSink(ciphertext))
                     );
             return cryptopp::enhex(ciphertext);
         }
 
         std::string decode(const std::string & ciphertext) {
-            using namespace CryptoPP;
             std::string plaintext;
-            ECB_Mode<AES>::Decryption Decryptor(m_key, AES::DEFAULT_KEYLENGTH);
-            StringSource(cryptopp::dehex(ciphertext), true,
-                    new StreamTransformationFilter(Decryptor, new StringSink(plaintext))
+            CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption Decryptor(m_key, CryptoPP::AES::DEFAULT_KEYLENGTH);
+            CryptoPP::StringSource(cryptopp::dehex(ciphertext), true,
+                    new CryptoPP::StreamTransformationFilter(Decryptor, new CryptoPP::StringSink(plaintext))
                     );
             return plaintext;
         }
 
         static std::string enhex(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new HexEncoder(new StringSink(encoded), false)
+            CryptoPP::StringSource ss(str, true, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false)
                     );
             return encoded;
         }
 
         static std::string dehex(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new HexDecoder(new StringSink(encoded))
+            CryptoPP::StringSource ss(str, true, new CryptoPP::HexDecoder(new CryptoPP::StringSink(encoded))
                     );
             return encoded;
         }
 
         static std::string enbase64(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new Base64Encoder(new StringSink(encoded))
+            CryptoPP::StringSource ss(str, true, new CryptoPP::Base64Encoder(new CryptoPP::StringSink(encoded))
                     );
             return encoded;
         }
 
         static std::string debase64(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new Base64Decoder(new StringSink(encoded))
+            CryptoPP::StringSource ss(str, true, new CryptoPP::Base64Decoder(new CryptoPP::StringSink(encoded))
                     );
             return encoded;
         }
@@ -138,17 +131,15 @@ namespace webcppd {
         }
 
         static std::string enbase32(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new Base32Encoder(new StringSink(encoded), false)
+            CryptoPP::StringSource ss(str, true, new CryptoPP::Base32Encoder(new CryptoPP::StringSink(encoded), false)
                     );
             return encoded;
         }
 
         static std::string debase32(const std::string & str) {
-            using namespace CryptoPP;
             std::string encoded;
-            StringSource ss(str, true, new Base32Decoder(new StringSink(encoded))
+            CryptoPP::StringSource ss(str, true, new CryptoPP::Base32Decoder(new CryptoPP::StringSink(encoded))
                     );
             return encoded;
         }
