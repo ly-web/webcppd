@@ -93,6 +93,12 @@ namespace webcppd {
     }
 
     Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
+        if (this->serverConf.getBool("http.enableHotlinking", true) && request.has("Referer")) {
+            Poco::RegularExpression hotlinking(this->serverConf.getString("http.matchHotlinking", ".*"));
+            if (!hotlinking.match(Poco::URI(request.get("Referer")).getHost())) {
+                return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+            }
+        }
         std::string clientIp = request.clientAddress().host().toString();
 
         if (this->serverConf.getBool("http.proxyUsed", false)) {
