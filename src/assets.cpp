@@ -18,14 +18,6 @@ namespace webcppd {
 
     void assets::do_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
         Poco::Util::Application &app = Poco::Util::Application::instance();
-        std::string clientIp = request.clientAddress().host().toString();
-        if (app.config().getBool("http.proxyUsed", false)) {
-            std::string realIp = request.get(app.config().getString("http.proxyServerRealIpHeader", "X-Real-IP"));
-            if (!realIp.empty()) {
-                clientIp = realIp;
-            }
-        }
-
 
         Poco::Path url_path(Poco::URI(request.getURI()).getPath()),
                 full_path(app.config().getString("http.docroot", "/var/www/webcppd/www"));
@@ -56,7 +48,7 @@ namespace webcppd {
                 response.sendFile(full_path.toString(), mimeType);
             } else if (file.isDirectory()) {
                 if (!app.config().getBool("http.enableIndex", false)) {
-                    response.redirect(url_path.append("/index.html").toString(), Poco::Net::HTTPServerResponse::HTTP_MOVED_PERMANENTLY);
+                    response.redirect(url_path.append("/index.html").toString(), Poco::Net::HTTPServerResponse::HTTP_FOUND);
                     return;
                 }
                 Poco::SortedDirectoryIterator it(full_path), jt;
