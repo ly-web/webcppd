@@ -14,9 +14,14 @@ case $1 in
         kill  `pidof webcppd`
     ;;
     uninstall)
-       	echo 'run: rm -f /usr/local/bin/webcppd /usr/bin/webcppd-ctrl.sh /usr/bin/webcppd /usr/bin/webcppd-service.sh /etc/systemd/system/webcppd.service'
+       	echo 'run: rm -f /usr/local/bin/webcppd  \
+                        /usr/local/include/webcppd \
+                        /usr/bin/webcppd-ctrl.sh \
+                        /usr/bin/webcppd \
+                        /usr/bin/webcppd-service.sh \
+                        /etc/systemd/system/webcppd.service'
 	echo 'run: rm -rf /etc/webcppd'
-	echo 'run: rm -rf /var/www/webcppd'
+	echo 'run: rm -rf /var/webcppd'
     ;;
     *)
     echo "Usage: $0 {start|stop|uninstall}"

@@ -29,7 +29,7 @@ namespace webcppd {
     , logger(new Poco::FileChannel)
     , classLoader()
     , route() {
-        this->logger->setProperty(Poco::FileChannel::PROP_PATH, this->serverConf.getString("http.logDirectory", "/var/www/webcppd/log") + "/webcppd.log");
+        this->logger->setProperty(Poco::FileChannel::PROP_PATH, this->serverConf.getString("http.logDirectory", "/var/webcppd/log") + "/webcppd.log");
         this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("http.logFileSize", "1 M"));
         this->logger->setProperty(Poco::FileChannel::PROP_COMPRESS, this->serverConf.getBool("http.logCompress", true) ? "true" : "false");
         this->logger->setProperty(Poco::FileChannel::PROP_TIMES, "local");
@@ -56,7 +56,7 @@ namespace webcppd {
             }
         }
 
-        Poco::Path libDir(this->serverConf.getString("http.libHandlerDir", "/var/www/webcppd/mod"));
+        Poco::Path libDir(this->serverConf.getString("http.libHandlerDir", "/var/webcppd/mod"));
         Poco::SortedDirectoryIterator it(libDir), jt;
         std::string libExt = Poco::SharedLibrary::suffix().substr(1);
         while (it != jt) {

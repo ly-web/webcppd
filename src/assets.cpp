@@ -20,7 +20,7 @@ namespace webcppd {
         Poco::Util::Application &app = Poco::Util::Application::instance();
 
         Poco::Path url_path(Poco::URI(request.getURI()).getPath()),
-                full_path(app.config().getString("http.docroot", "/var/www/webcppd/www"));
+                full_path(app.config().getString("http.docroot", "/var/webcppd/www"));
         full_path.append(url_path);
 
 

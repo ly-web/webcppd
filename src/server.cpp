@@ -109,9 +109,9 @@ namespace webcppd {
                 try {
                     Poco::Net::Context::Ptr cptr(new Poco::Net::Context(
                             Poco::Net::Context::SERVER_USE
-                            , serverConf.getString("http.certPrivateKeyFile", "/var/www/webcppd/cert/server.key")
-                            , serverConf.getString("http.certCertificateFile", "/var/www/webcppd/cert/server.crt")
-                            , serverConf.getString("http.certRootCertificateFile", "/var/www/webcppd/cert/rootCA.pem")
+                            , serverConf.getString("http.certPrivateKeyFile", "/var/webcppd/cert/server.key")
+                            , serverConf.getString("http.certCertificateFile", "/var/webcppd/cert/server.crt")
+                            , serverConf.getString("http.certRootCertificateFile", "/var/webcppd/cert/rootCA.pem")
                             , serverConf.getBool("http.certCheckClient", false) ? Poco::Net::Context::VERIFY_RELAXED : Poco::Net::Context::VERIFY_NONE
                             , 9
                             , false));
