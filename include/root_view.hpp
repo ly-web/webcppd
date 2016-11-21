@@ -126,6 +126,36 @@ namespace webcppd {
             root_view::root_session().add(cookie.getValue(), std::map<std::string, Poco::DynamicAny>());
             return cookie.getValue();
         }
+
+    private:
+
+        class mysql_connection_config {
+        public:
+
+            mysql_connection_config() : nvc() {
+                Poco::Util::Application& app = Poco::Util::Application::instance();
+                this->nvc["host"] = app.config().getString("mysql.host", "localhost");
+                this->nvc["port"] = app.config().getString("mysql.port", "3306");
+                this->nvc["user"] = app.config().getString("mysql.user", "root");
+                this->nvc["password"] = app.config().getString("mysql.password", "123456");
+                this->nvc["db"] = app.config().getString("mysql.db", "test");
+                this->nvc["default-character-set"] = app.config().getString("mysql.default-character", "utf8");
+                this->nvc["compress"] = app.config().getString("mysql.compress", "true");
+                this->nvc["auto-reconnect"] = app.config().getString("mysql.auto-reconnect", "true");
+            }
+            virtual ~mysql_connection_config() = default;
+
+            std::string get() {
+                std::string connection_string;
+                for (auto& item : this->nvc) {
+                    connection_string += (item.first + "=" + item.second + ";");
+                }
+                return connection_string;
+            }
+        private:
+            std::map<std::string, std::string> nvc;
+
+        };
     protected:
 
         void session_set(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& key, const Poco::DynamicAny& value) {
@@ -195,6 +225,11 @@ namespace webcppd {
         static root_session_t& root_session() {
             static Poco::SingletonHolder<root_session_t> session;
             return *session.get();
+        }
+
+        static std::string mysql_connection_string() {
+            static Poco::SingletonHolder<mysql_connection_config> mysql_config;
+            return mysql_config.get()->get();
         }
 
 
