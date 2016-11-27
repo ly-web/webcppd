@@ -23,6 +23,11 @@
 #include <Poco/UniqueExpireCache.h>
 #include <Poco/UUIDGenerator.h>
 #include <Poco/DynamicAny.h>
+#include <Poco/FileStream.h>
+#include <Poco/StreamCopier.h>
+
+
+#include "mustache.hpp"
 
 
 
@@ -232,6 +237,29 @@ namespace webcppd {
             return mysql_config.get()->get();
         }
 
+    protected:
+
+        std::string render_tpl(const std::string& tpl_path) {
+            if (root_view::root_cache().has(tpl_path)) {
+                return *root_view::root_cache().get(tpl_path);
+            }
+            Poco::Util::Application& app = Poco::Util::Application::instance();
+            Poco::FileInputStream IS(app.config().getString("http.tplDirectory", "/var/webcppd/tpl") + tpl_path);
+            std::string tpl;
+            Poco::StreamCopier::copyToString(IS, tpl);
+            root_view::root_cache().add(tpl_path, tpl);
+            return tpl;
+        }
+
+        std::string render_tpl(const std::string& tpl_path, const Kainjow::Mustache::Data& data) {
+            if (root_view::root_cache().has(tpl_path)) {
+                return *root_view::root_cache().get(tpl_path);
+            }
+            std::string tpl = this->render_tpl(tpl_path);
+            Kainjow::Mustache engine(tpl);
+            root_view::root_cache().add(tpl_path, engine.render(data));
+            return *root_view::root_cache().get(tpl_path);
+        }
 
 
     };
