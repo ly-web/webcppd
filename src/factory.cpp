@@ -138,7 +138,10 @@ namespace webcppd {
         if (!handler) {
             return new webcppd::assets();
         }
-
+        Poco::Net::HTTPServerResponse & response = request.response();
+        if (!response.has("page-type")) {
+            response.set("page-type", "dynamic");
+        }
         return handler;
     }
 

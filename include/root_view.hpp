@@ -68,6 +68,7 @@ namespace webcppd {
     private:
 
         bool check_modified(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
+            if (response.has("page-type"))return true;
             const std::string last_modified("Last-Modified"), if_modified_since("If-Modified-Since"), max_age("max-age");
             const int expire = Poco::Util::Application::instance().config().getInt("http.expires", 3600);
             Poco::DateTime dt;
@@ -115,12 +116,18 @@ namespace webcppd {
             const int expire(600);
             Poco::Net::NameValueCollection cookies;
             request.getCookies(cookies);
-            if (cookies.has(session_id_key) && root_view::root_session().has(cookies.get(session_id_key))) {
-                return cookies.get(session_id_key);
+            std::string session_id_value;
+            if (cookies.has(session_id_key)) {
+                session_id_value = cookies.get(session_id_key);
+                if (!root_view::root_session().has(session_id_value)) {
+                    root_view::root_session().add(session_id_value, std::map<std::string, Poco::DynamicAny>());
+                }
+                return session_id_value;
             }
+            session_id_value = Poco::UUIDGenerator::defaultGenerator().createRandom().toString();
             Poco::Net::HTTPCookie cookie;
             cookie.setName(session_id_key);
-            cookie.setValue(Poco::UUIDGenerator::defaultGenerator().createRandom().toString());
+            cookie.setValue(session_id_value);
             cookie.setMaxAge(expire);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
@@ -128,8 +135,8 @@ namespace webcppd {
                 cookie.setSecure(true);
             }
             response.addCookie(cookie);
-            root_view::root_session().add(cookie.getValue(), std::map<std::string, Poco::DynamicAny>());
-            return cookie.getValue();
+            root_view::root_session().add(session_id_value, std::map<std::string, Poco::DynamicAny>());
+            return session_id_value;
         }
 
     private:
