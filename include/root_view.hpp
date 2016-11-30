@@ -25,6 +25,7 @@
 #include <Poco/DynamicAny.h>
 #include <Poco/FileStream.h>
 #include <Poco/StreamCopier.h>
+#include <Poco/Exception.h>
 
 
 #include "mustache.hpp"
@@ -43,23 +44,28 @@ namespace webcppd {
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
 
         void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
-            if (!this->check_modified(request, response)) {
+            try {
+                if (!this->check_modified(request, response)) {
+                    this->log(request, response);
+                    return;
+                }
+                this->session_create(request, response);
+                if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+                    this->do_get(request, response);
+                } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+                    this->do_post(request, response);
+                } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_PUT) {
+                    this->do_put(request, response);
+                } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+                    this->do_delete(request, response);
+                } else {
+                    this->error(request, response);
+                }
                 this->log(request, response);
-                return;
+            } catch (Poco::Exception & e) {
+                Poco::Util::Application::instance().logger().log(e);
+                this->error(request, response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
             }
-            this->session_create(request, response);
-            if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
-                this->do_get(request, response);
-            } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
-                this->do_post(request, response);
-            } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_PUT) {
-                this->do_put(request, response);
-            } else if (request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
-                this->do_delete(request, response);
-            } else {
-                this->error(request, response);
-            }
-            this->log(request, response);
         }
 
 
@@ -226,6 +232,21 @@ namespace webcppd {
         virtual void error(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             request.response().setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             request.response().send();
+        }
+
+        virtual void error(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, Poco::Net::HTTPResponse::HTTPStatus status, const std::string& message = "") {
+            response.setStatusAndReason(status);
+            response.send() << "<html><head><title>"
+                    << static_cast<int> (response.getStatus())
+                    << " "
+                    << response.getReason()
+                    << "</title></head><body bgcolor=\"white\"><center><h1>"
+                    << static_cast<int> (response.getStatus())
+                    << " "
+                    << response.getReason()
+                    << "</h1></center><hr/>"
+                    << message
+                    << "</body></html>";
         }
     protected:
 
