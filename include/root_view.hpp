@@ -26,6 +26,15 @@
 #include <Poco/FileStream.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/Exception.h>
+#include <Poco/Data/Session.h>
+#include <Poco/Data/MySQL/Connector.h>
+#include <Poco/Data/SessionPool.h>
+#include <Poco/Data/RecordSet.h>
+#include <Poco/Data/Row.h>
+#include <Poco/NumberParser.h>
+#include <Poco/NumericString.h>
+#include <Poco/NumberFormatter.h>
+#include <Poco/StringTokenizer.h>
 
 
 #include "mustache.hpp"
@@ -280,13 +289,9 @@ namespace webcppd {
         }
 
         std::string render_tpl(const std::string& tpl_path, const Kainjow::Mustache::Data& data) {
-            if (root_view::root_cache().has(tpl_path)) {
-                return *root_view::root_cache().get(tpl_path);
-            }
             std::string tpl = this->render_tpl(tpl_path);
             Kainjow::Mustache engine(tpl);
-            root_view::root_cache().add(tpl_path, engine.render(data));
-            return *root_view::root_cache().get(tpl_path);
+            return engine.render(data);
         }
 
 
