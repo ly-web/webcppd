@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <Poco/Net/HTTPRequestHandler.h>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
@@ -26,11 +27,6 @@
 #include <Poco/FileStream.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/Exception.h>
-#include <Poco/Data/Session.h>
-#include <Poco/Data/MySQL/Connector.h>
-#include <Poco/Data/SessionPool.h>
-#include <Poco/Data/RecordSet.h>
-#include <Poco/Data/Row.h>
 #include <Poco/NumberParser.h>
 #include <Poco/NumericString.h>
 #include <Poco/NumberFormatter.h>
