@@ -2,11 +2,17 @@
 Description=webcppd http server
 
 [Service]
-Type=forking
+Type=simple
 ExecStart=/bin/bash /usr/bin/webcppd-service.sh start
-ExecStop=/bin/bash /usr/bin/webcppd-service.sh stop
-ExecReload=/bin/bash /usr/bin/webcppd-service.sh restart
+#ExecStop=/bin/bash /usr/bin/webcppd-service.sh stop
+#ExecReload=/bin/bash /usr/bin/webcppd-service.sh restart
 PIDFile=/var/run/webcppd.pid
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-abort
+RestartSec=5s
+SendSIGKILL=no
+
 
 [Install]
 WantedBy=multi-user.target
