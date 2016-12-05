@@ -18,7 +18,7 @@ function stop {
       exit 1
    else
       echo -n "Stopping webcppd server.."
-      kill  $PID
+      kill -9 $PID
       sleep 1
       echo ".. Done."
    fi
@@ -29,7 +29,8 @@ function start {
    get_pid
    if [ -z $PID ]; then
       echo  "Starting webcppd server.."
-      /usr/local/bin/webcppd --config=/etc/webcppd/webcppd.properties --pidfile=/var/run/webcppd.pid --daemon &
+      /usr/local/bin/webcppd --config=/etc/webcppd/webcppd.properties --pidfile=/var/run/webcppd.pid --daemon
+      sleep 5
       get_pid
       echo "Done. PID=$PID"
    else

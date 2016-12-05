@@ -11,7 +11,7 @@ case $1 in
         /usr/local/bin/webcppd --config=/etc/webcppd/webcppd.properties --pidfile=/var/run/webcppd.pid --daemon
     ;;
     stop) 
-        kill  `pidof webcppd`
+        kill -9 `pidof webcppd`
     ;;
     uninstall)
        	echo 'run: rm -f /usr/local/bin/webcppd  \

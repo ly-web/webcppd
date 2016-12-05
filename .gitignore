@@ -29,3 +29,4 @@ webcppd
 *.exe
 *.out
 *.app
+/centos-install-depend.sh
