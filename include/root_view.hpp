@@ -31,6 +31,7 @@
 #include <Poco/NumericString.h>
 #include <Poco/NumberFormatter.h>
 #include <Poco/StringTokenizer.h>
+#include <Poco/MD5Engine.h>
 
 
 #include "mustache.hpp"
@@ -252,6 +253,12 @@ namespace webcppd {
                     << "</h1></center><hr/>"
                     << message
                     << "</body></html>";
+        }
+
+        std::string create_cache_key(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const Poco::DynamicAny& any = "") {
+            Poco::MD5Engine engine;
+            engine.update(request.getMethod() + Poco::URI(request.getURI()).getPathAndQuery() + any.convert<std::string>());
+            return Poco::MD5Engine::digestToHex(engine.digest());
         }
     protected:
 
