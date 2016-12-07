@@ -28,7 +28,8 @@ namespace webcppd {
     , ipfilter(serverConf.getInt("http.ipDenyExpire", 3600)*1000, serverConf.getInt("http.ipAccessInterval", 30)*1000, serverConf.getString("http.ipDenyFile", "/etc/webcppd/ipdeny.conf"))
     , logger(new Poco::FileChannel)
     , classLoader()
-    , route() {
+    , route()
+    , hotlinkRegex(serverConf.getString("http.matchHotlinking", "localhost")) {
         this->logger->setProperty(Poco::FileChannel::PROP_PATH, this->serverConf.getString("http.logDirectory", "/var/webcppd/log") + "/webcppd.log");
         this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("http.logFileSize", "1 M"));
         this->logger->setProperty(Poco::FileChannel::PROP_COMPRESS, this->serverConf.getBool("http.logCompress", true) ? "true" : "false");
@@ -49,7 +50,7 @@ namespace webcppd {
                     std::size_t maxIndex = st.count() - 1;
                     if (maxIndex > 0) {
                         for (std::size_t i = 0; i < maxIndex; ++i) {
-                            this->route[st[i]] = st[maxIndex];
+                            this->route.push_back(std::make_pair(st[i], st[maxIndex]));
                         }
                     }
                 }
@@ -94,8 +95,7 @@ namespace webcppd {
 
     Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
         if (this->serverConf.getBool("http.enableHotlinking", true) && request.has("Referer")) {
-            Poco::RegularExpression hotlinking(this->serverConf.getString("http.matchHotlinking", ".*"));
-            if (!hotlinking.match(Poco::URI(request.get("Referer")).getHost())) {
+            if (!this->hotlinkRegex.match(Poco::URI(request.get("Referer")).getHost())) {
                 return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
         }
