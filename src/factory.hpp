@@ -29,6 +29,12 @@ namespace webcppd {
         Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
         std::vector<std::pair<std::string, std::string> > route;
         Poco::RegularExpression hotlinkRegex;
+    private:
+        void initialize();
+        void uninitialize();
+        void config_log();
+        void config_route();
+        void config_mod();
     };
 }
 #endif /* FACTORY_HPP */
