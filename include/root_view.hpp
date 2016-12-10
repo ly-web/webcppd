@@ -153,20 +153,13 @@ namespace webcppd {
                 session_id_value = cookies.get(session_id_key);
                 if (!root_view::root_session().has(session_id_value)) {
                     root_view::root_session().add(session_id_value, std::map<std::string, Poco::DynamicAny>());
+                    this->cookie_set(request, response, session_id_key, session_id_value, expire);
                 }
                 return session_id_value;
             }
             session_id_value = Poco::UUIDGenerator::defaultGenerator().createRandom().toString();
-            Poco::Net::HTTPCookie cookie;
-            cookie.setName(session_id_key);
-            cookie.setValue(session_id_value);
-            cookie.setMaxAge(expire);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
-                cookie.setSecure(true);
-            }
-            response.addCookie(cookie);
+            this->cookie_set(request, response, session_id_key, session_id_value, expire);
+
             root_view::root_session().add(session_id_value, std::map<std::string, Poco::DynamicAny>());
             return session_id_value;
         }
@@ -244,6 +237,25 @@ namespace webcppd {
 
         void expired(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             request.response().set("Last-Modified", Poco::DateTimeFormatter::format(Poco::DateTime(1970, 1, 1), Poco::DateTimeFormat::HTTP_FORMAT));
+        }
+
+        void cookie_set(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& name, const std::string& value, int expire) {
+            Poco::Net::HTTPCookie cookie;
+            cookie.setName(name);
+            cookie.setValue(value);
+            cookie.setMaxAge(expire);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
+                cookie.setSecure(true);
+            }
+            response.addCookie(cookie);
+        }
+
+        std::string cookie_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response, const std::string& name) {
+            Poco::Net::NameValueCollection cookies;
+            request.getCookies(cookies);
+            return cookies.get(name, "");
         }
     protected:
 

@@ -38,8 +38,8 @@ namespace webcppd {
 
         upload_handler(
                 const std::string allowName
-                , const std::string allowType = "image/png|image/jpeg|application/zip"
-                , const std::string uploadDirectory = "/var/www/webcppd/www/upload"
+                , const std::string allowType = "image/png|image/jpeg|image/gif|image/webp|application/zip"
+                , const std::string uploadDirectory = "/var/webcppd/www/upload"
                 , double allowMaxSize = 1048576)
         : data()
         , allowName(allowName)

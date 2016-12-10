@@ -55,7 +55,7 @@ namespace webcppd {
             Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
             return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
         }
-        if (this->serverConf.getBool("http.ipEnableCheck", false)) {
+        if (this->serverConf.getBool("http.ipEnableCheck", true)) {
             if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
                 Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
                 return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
