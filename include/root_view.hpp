@@ -22,6 +22,7 @@
 #include <Poco/File.h>
 #include <Poco/ExpirationDecorator.h>
 #include <Poco/UniqueExpireCache.h>
+#include <Poco/UniqueExpireLRUCache.h>
 #include <Poco/UUIDGenerator.h>
 #include <Poco/DynamicAny.h>
 #include <Poco/FileStream.h>
@@ -44,10 +45,29 @@
 namespace webcppd {
 
     class root_view : public Poco::Net::HTTPRequestHandler {
-    public:
-
+    private:
         typedef Poco::ExpireLRUCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
+
+        class session_t : public root_session_t {
+        public:
+
+            session_t(long cacheSize = 1024, Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.expires", 3600)*1000) :
+            root_session_t(cacheSize, expire) {
+            }
+
+        };
+
+        class cache_t : public root_cache_t {
+        public:
+
+            cache_t(long cacheSize = 1024, Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.cacheExpires", 600)*1000) :
+            root_cache_t(cacheSize, expire) {
+            }
+        };
+
+
+    public:
 
         void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             try {
@@ -125,7 +145,7 @@ namespace webcppd {
 
         std::string session_create(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             const std::string session_id_key("WEBCPPDSESSIONID");
-            const int expire(600);
+            const int expire(Poco::Util::Application::instance().config().getInt("http.expires", 3600));
             Poco::Net::NameValueCollection cookies;
             request.getCookies(cookies);
             std::string session_id_value;
@@ -263,12 +283,12 @@ namespace webcppd {
     protected:
 
         static root_cache_t& root_cache() {
-            static Poco::SingletonHolder<root_cache_t> cache;
+            static Poco::SingletonHolder<cache_t> cache;
             return *cache.get();
         }
 
         static root_session_t& root_session() {
-            static Poco::SingletonHolder<root_session_t> session;
+            static Poco::SingletonHolder<session_t> session;
             return *session.get();
         }
 
