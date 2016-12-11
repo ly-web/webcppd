@@ -38,55 +38,60 @@ namespace webcppd {
     }
 
     Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
-        if (this->serverConf.getBool("http.enableHotlinking", true) && request.has("Referer")) {
-            if (!this->hotlinkRegex.match(Poco::URI(request.get("Referer")).getHost())) {
+        try {
+            if (this->serverConf.getBool("http.enableHotlinking", true) && request.has("Referer")) {
+                if (!this->hotlinkRegex.match(Poco::URI(request.get("Referer")).getHost())) {
+                    return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+                }
+            }
+            std::string clientIp = request.clientAddress().host().toString();
+
+            if (this->serverConf.getBool("http.proxyUsed", false)) {
+                std::string realIp = request.get(this->serverConf.getString("http.proxyServerRealIpHeader", "X-Real-IP"));
+                if (!realIp.empty()) {
+                    clientIp = realIp;
+                }
+            }
+            if (this->ipfilter.kill(clientIp)) {
+                Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
                 return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
-        }
-        std::string clientIp = request.clientAddress().host().toString();
-
-        if (this->serverConf.getBool("http.proxyUsed", false)) {
-            std::string realIp = request.get(this->serverConf.getString("http.proxyServerRealIpHeader", "X-Real-IP"));
-            if (!realIp.empty()) {
-                clientIp = realIp;
+            if (this->serverConf.getBool("http.ipEnableCheck", true)) {
+                if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
+                    Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
+                    return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+                }
             }
-        }
-        if (this->ipfilter.kill(clientIp)) {
-            Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
-            return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
-        }
-        if (this->serverConf.getBool("http.ipEnableCheck", true)) {
-            if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
-                Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
-                return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
+            std::string path = Poco::URI(request.getURI()).getPath();
+            std::string fullClassName;
+
+            for (auto &item : this->route) {
+                Poco::RegularExpression reg(item.first);
+                if (reg.match(path)) {
+                    fullClassName = item.second;
+                    break;
+                }
             }
-        }
-        std::string path = Poco::URI(request.getURI()).getPath();
-        std::string fullClassName;
 
-        for (auto &item : this->route) {
-            Poco::RegularExpression reg(item.first);
-            if (reg.match(path)) {
-                fullClassName = item.second;
-                break;
+            Poco::Net::HTTPRequestHandler* handler = 0;
+            auto finded = this->classLoader.findClass(fullClassName);
+            if (finded != 0 && finded->canCreate()) {
+                handler = this->classLoader.create(fullClassName);
+                this->classLoader.classFor(fullClassName).autoDelete(handler);
             }
-        }
 
-        Poco::Net::HTTPRequestHandler* handler = 0;
-        auto finded = this->classLoader.findClass(fullClassName);
-        if (finded != 0 && finded->canCreate()) {
-            handler = this->classLoader.create(fullClassName);
-            this->classLoader.classFor(fullClassName).autoDelete(handler);
+            if (!handler) {
+                return new webcppd::assets();
+            }
+            Poco::Net::HTTPServerResponse & response = request.response();
+            if (!response.has("page-type")) {
+                response.set("page-type", "dynamic");
+            }
+            return handler;
+        } catch (Poco::Exception& e) {
+            Poco::Util::Application::instance().logger().error(e.message());
+            return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_EXPECTATION_FAILED);
         }
-
-        if (!handler) {
-            return new webcppd::assets();
-        }
-        Poco::Net::HTTPServerResponse & response = request.response();
-        if (!response.has("page-type")) {
-            response.set("page-type", "dynamic");
-        }
-        return handler;
     }
 
     void factory::initialize() {
