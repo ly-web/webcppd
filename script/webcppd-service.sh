@@ -6,9 +6,13 @@
 # Created on Oct 28, 2016, 5:14:35 AM
 #
 PID=""
+PID_FILE=/var/run/webcppd.pid
 
 function get_pid {
-   PID=`pidof webcppd`
+    if [ -e $PID_FILE ]; then
+        PID=`cat $PID_FILE`
+        echo $PID
+    fi
 }
 
 function stop {
