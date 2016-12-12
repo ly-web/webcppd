@@ -45,6 +45,14 @@
 namespace webcppd {
 
     class root_view : public Poco::Net::HTTPRequestHandler {
+    public:
+
+        root_view(Poco::Util::Application& self = Poco::Util::Application::instance()) :
+        HTTPRequestHandler(), app(self) {
+        }
+
+    protected:
+        Poco::Util::Application& app;
     private:
         typedef Poco::ExpireLRUCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
@@ -89,7 +97,7 @@ namespace webcppd {
                 }
                 this->log(request, response);
             } catch (Poco::Exception & e) {
-                Poco::Util::Application::instance().logger().log(e);
+                this->app.logger().log(e);
                 this->error(request, response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
             }
         }
@@ -102,7 +110,7 @@ namespace webcppd {
         bool check_modified(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             if (response.has("page-type"))return true;
             const std::string last_modified("Last-Modified"), if_modified_since("If-Modified-Since"), max_age("max-age");
-            const int expire = Poco::Util::Application::instance().config().getInt("http.expires", 3600);
+            const int expire = this->app.config().getInt("http.expires", 3600);
             Poco::DateTime dt;
             if (!request.has(if_modified_since)) {
                 request.response().set(last_modified, Poco::DateTimeFormatter::format(dt, Poco::DateTimeFormat::HTTP_FORMAT));
@@ -124,7 +132,7 @@ namespace webcppd {
         }
 
         void log(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
-            Poco::Util::Application &app = Poco::Util::Application::instance();
+            Poco::Util::Application &app = this->app;
             std::string clientIp = request.clientAddress().host().toString();
             std::string url = Poco::URI(request.getURI()).getPathAndQuery();
             if (app.config().getBool("http.proxyUsed", false)) {
@@ -145,7 +153,7 @@ namespace webcppd {
 
         std::string session_create(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
             const std::string session_id_key("WEBCPPDSESSIONID");
-            const int expire(Poco::Util::Application::instance().config().getInt("http.expires", 3600));
+            const int expire(this->app.config().getInt("http.expires", 3600));
             Poco::Net::NameValueCollection cookies;
             request.getCookies(cookies);
             std::string session_id_value;
@@ -228,7 +236,7 @@ namespace webcppd {
             cookie.setMaxAge(expire);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
-            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
+            if (this->app.config().getBool("http.enableSSL", true)) {
                 cookie.setSecure(true);
             }
             response.addCookie(cookie);
@@ -246,7 +254,7 @@ namespace webcppd {
             cookie.setMaxAge(expire);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
-            if (Poco::Util::Application::instance().config().getBool("http.enableSSL", true)) {
+            if (this->app.config().getBool("http.enableSSL", true)) {
                 cookie.setSecure(true);
             }
             response.addCookie(cookie);
@@ -315,7 +323,7 @@ namespace webcppd {
             if (root_view::root_cache().has(tpl_path)) {
                 return *root_view::root_cache().get(tpl_path);
             }
-            Poco::Util::Application& app = Poco::Util::Application::instance();
+            Poco::Util::Application& app = this->app;
             Poco::FileInputStream IS(app.config().getString("http.tplDirectory", "/var/webcppd/tpl") + tpl_path);
             std::string tpl;
             Poco::StreamCopier::copyToString(IS, tpl);

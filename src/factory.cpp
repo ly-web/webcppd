@@ -24,12 +24,12 @@
 
 namespace webcppd {
 
-    factory::factory() : serverConf(Poco::Util::Application::instance().config())
-    , ipfilter(serverConf.getInt("http.ipDenyExpire", 3600)*1000, serverConf.getInt("http.ipAccessInterval", 30)*1000, serverConf.getString("http.ipDenyFile", "/etc/webcppd/ipdeny.conf"))
+    factory::factory() : app(Poco::Util::Application::instance())
+    , ipfilter(app.config().getInt("http.ipDenyExpire", 3600)*1000, app.config().getInt("http.ipAccessInterval", 30)*1000, app.config().getString("http.ipDenyFile", "/etc/webcppd/ipdeny.conf"))
     , logger(new Poco::FileChannel)
     , classLoader()
     , route()
-    , hotlinkRegex(serverConf.getString("http.matchHotlinking", "localhost")) {
+    , hotlinkRegex(app.config().getString("http.matchHotlinking", "localhost")) {
         this->initialize();
     }
 
@@ -39,26 +39,26 @@ namespace webcppd {
 
     Poco::Net::HTTPRequestHandler* factory::createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
         try {
-            if (this->serverConf.getBool("http.enableHotlinking", true) && request.has("Referer")) {
+            if (this->app.config().getBool("http.enableHotlinking", true) && request.has("Referer")) {
                 if (!this->hotlinkRegex.match(Poco::URI(request.get("Referer")).getHost())) {
                     return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
                 }
             }
             std::string clientIp = request.clientAddress().host().toString();
 
-            if (this->serverConf.getBool("http.proxyUsed", false)) {
-                std::string realIp = request.get(this->serverConf.getString("http.proxyServerRealIpHeader", "X-Real-IP"));
+            if (this->app.config().getBool("http.proxyUsed", false)) {
+                std::string realIp = request.get(this->app.config().getString("http.proxyServerRealIpHeader", "X-Real-IP"));
                 if (!realIp.empty()) {
                     clientIp = realIp;
                 }
             }
             if (this->ipfilter.kill(clientIp)) {
-                Poco::Util::Application::instance().logger().error("IP %[0]s is unwelcome.", clientIp);
+                this->app.logger().error("IP %[0]s is unwelcome.", clientIp);
                 return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
-            if (this->serverConf.getBool("http.ipEnableCheck", true)) {
-                if (this->ipfilter.deny(clientIp, this->serverConf.getInt("http.ipMaxAccessCount", 100))) {
-                    Poco::Util::Application::instance().logger().error("IP %[0]s is denied.", clientIp);
+            if (this->app.config().getBool("http.ipEnableCheck", true)) {
+                if (this->ipfilter.deny(clientIp, this->app.config().getInt("http.ipMaxAccessCount", 100))) {
+                    this->app.logger().error("IP %[0]s is denied.", clientIp);
                     return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
                 }
             }
@@ -83,13 +83,10 @@ namespace webcppd {
             if (!handler) {
                 return new webcppd::assets();
             }
-            Poco::Net::HTTPServerResponse & response = request.response();
-            if (!response.has("page-type")) {
-                response.set("page-type", "dynamic");
-            }
+            request.response().set("page-type", "dynamic");
             return handler;
         } catch (Poco::Exception& e) {
-            Poco::Util::Application::instance().logger().error(e.message());
+            this->app.logger().error(e.message());
             return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_EXPECTATION_FAILED);
         }
     }
@@ -110,27 +107,27 @@ namespace webcppd {
         for (auto &item : libpath) {
 
             this->classLoader.unloadLibrary(item);
-            Poco::Util::Application::instance().logger().information(item + " is unloaded.");
+            this->app.logger().information(item + " is unloaded.");
         }
 
-        Poco::Util::Application::instance().logger().close();
+        this->app.logger().close();
     }
 
     void factory::config_log() {
-        this->logger->setProperty(Poco::FileChannel::PROP_PATH, this->serverConf.getString("http.logDirectory", "/var/webcppd/log") + "/webcppd.log");
-        this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->serverConf.getString("http.logFileSize", "1 M"));
-        this->logger->setProperty(Poco::FileChannel::PROP_COMPRESS, this->serverConf.getBool("http.logCompress", true) ? "true" : "false");
+        this->logger->setProperty(Poco::FileChannel::PROP_PATH, this->app.config().getString("http.logDirectory", "/var/webcppd/log") + "/webcppd.log");
+        this->logger->setProperty(Poco::FileChannel::PROP_ROTATION, this->app.config().getString("http.logFileSize", "1 M"));
+        this->logger->setProperty(Poco::FileChannel::PROP_COMPRESS, this->app.config().getBool("http.logCompress", true) ? "true" : "false");
         this->logger->setProperty(Poco::FileChannel::PROP_TIMES, "local");
         this->logger->setProperty(Poco::FileChannel::PROP_ARCHIVE, "number");
-        this->logger->setProperty(Poco::FileChannel::PROP_PURGECOUNT, Poco::NumberFormatter::format(this->serverConf.getInt("http.logPurgeCount", 10)));
+        this->logger->setProperty(Poco::FileChannel::PROP_PURGECOUNT, Poco::NumberFormatter::format(this->app.config().getInt("http.logPurgeCount", 10)));
         Poco::AutoPtr<Poco::AsyncChannel> p(new Poco::AsyncChannel(this->logger));
-        Poco::Util::Application::instance().logger().setChannel(p);
-        Poco::Util::Application::instance().logger().setLevel("trace");
-        Poco::Util::Application::instance().logger().open();
+        this->app.logger().setChannel(p);
+        this->app.logger().setLevel("trace");
+        this->app.logger().open();
     }
 
     void factory::config_route() {
-        std::ifstream input(this->serverConf.getString("http.route", "/etc/webcppd/route.conf"));
+        std::ifstream input(this->app.config().getString("http.route", "/etc/webcppd/route.conf"));
         if (input) {
             std::string line;
             while (std::getline(input, line)) {
@@ -148,7 +145,7 @@ namespace webcppd {
     }
 
     void factory::config_mod() {
-        Poco::Path libDir(this->serverConf.getString("http.libHandlerDir", "/var/webcppd/mod"));
+        Poco::Path libDir(this->app.config().getString("http.libHandlerDir", "/var/webcppd/mod"));
         Poco::SortedDirectoryIterator it(libDir), jt;
         std::string libExt = Poco::SharedLibrary::suffix().substr(1);
         while (it != jt) {
@@ -156,9 +153,9 @@ namespace webcppd {
                 if (!this->classLoader.isLibraryLoaded(it->path())) {
                     try {
                         this->classLoader.loadLibrary(it->path());
-                        Poco::Util::Application::instance().logger().notice("%[0]s is loaded", it->path());
+                        this->app.logger().notice("%[0]s is loaded", it->path());
                     } catch (Poco::LibraryLoadException& e) {
-                        Poco::Util::Application::instance().logger().notice("%[0]s is not loaded", it->path());
+                        this->app.logger().notice("%[0]s is not loaded", it->path());
                     }
                 }
             }

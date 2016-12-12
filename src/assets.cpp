@@ -17,10 +17,9 @@
 namespace webcppd {
 
     void assets::do_get(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
-        Poco::Util::Application &app = Poco::Util::Application::instance();
 
         Poco::Path url_path(Poco::URI(request.getURI()).getPath()),
-                full_path(app.config().getString("http.docroot", "/var/webcppd/www"));
+                full_path(this->app.config().getString("http.docroot", "/var/webcppd/www"));
         full_path.append(url_path);
 
 
@@ -42,12 +41,12 @@ namespace webcppd {
                 }
 
                 response.setChunkedTransferEncoding(true);
-                response.set("Cache-Control", Poco::format("max-age=%[0]d", app.config().getInt("http.expires", 3600)));
+                response.set("Cache-Control", Poco::format("max-age=%[0]d", this->app.config().getInt("http.expires", 3600)));
                 response.add("Cache-Control", "must-revalidate");
                 std::string mimeType = webcppd::mime().getType(full_path.getExtension());
                 response.sendFile(full_path.toString(), mimeType);
             } else if (file.isDirectory()) {
-                if (!app.config().getBool("http.enableIndex", false)) {
+                if (!this->app.config().getBool("http.enableIndex", false)) {
                     response.redirect(url_path.append("/index.html").toString(), Poco::Net::HTTPServerResponse::HTTP_FOUND);
                     return;
                 }

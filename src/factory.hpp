@@ -10,7 +10,7 @@
 #include <Poco/ClassLoader.h>
 #include <Poco/AutoPtr.h>
 #include <Poco/FileChannel.h>
-#include <Poco/Util/LayeredConfiguration.h>
+#include <Poco/Util/Application.h>
 #include <Poco/RegularExpression.h>
 
 #include "ipfilter.hpp"
@@ -23,7 +23,7 @@ namespace webcppd {
         virtual~factory();
         Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request);
     private:
-        Poco::Util::LayeredConfiguration &serverConf;
+        Poco::Util::Application& app;
         webcppd::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
