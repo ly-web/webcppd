@@ -15,6 +15,8 @@ Fast and Lightweight Web Server for Applications Written in C++
 
 `yum -y install poco-devel`
 
+推荐执行`centos-install-depend.sh`
+
 ### Ubuntu
 不要安装libpoco-dev，它的版本太低
 
@@ -42,5 +44,9 @@ Fast and Lightweight Web Server for Applications Written in C++
 `sudo systemctl enable webcppd`
 
 ## 配置
-见 /etc/webcppd/webcppd.properties
+见 `/etc/webcppd/webcppd.properties`
+
+## HTTPS
+如果需要https
+请参考`letsencrypt/letsencrypt.md`
 
