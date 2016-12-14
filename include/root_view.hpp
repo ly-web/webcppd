@@ -33,6 +33,15 @@
 #include <Poco/NumberFormatter.h>
 #include <Poco/StringTokenizer.h>
 #include <Poco/MD5Engine.h>
+#include <Poco/JSON/JSON.h>
+#include <Poco/JSON/Object.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/JSON/Array.h>
+#include <Poco/JSON/Query.h>
+#include <Poco/JSON/Template.h>
+#include <Poco/Dynamic/Var.h>
+#include <Poco/Dynamic/Struct.h>
+
 
 
 #include "mustache.hpp"
@@ -335,6 +344,33 @@ namespace webcppd {
             std::string tpl = this->render_tpl(tpl_path);
             Kainjow::Mustache engine(tpl);
             return engine.render(data);
+        }
+
+        Poco::SharedPtr<Kainjow::Mustache::Data> tpl_ready(const std::string& config_path, const std::string& component_query_path) {
+            std::string jsonstring = this->render_tpl(config_path);
+            Poco::JSON::Parser parser;
+            Poco::Dynamic::Var result;
+            result = parser.parse(jsonstring);
+            Poco::JSON::Query query(result);
+            Poco::JSON::Object::Ptr json = query.findObject(component_query_path);
+            std::vector<std::string> names;
+            json->getNames(names);
+
+
+            Poco::SharedPtr<Kainjow::Mustache::Data> data(new Kainjow::Mustache::Data);
+
+            for (auto &name : names) {
+                if (name != "subtpl") {
+                    data->set(name, json->get(name).convert<std::string>());
+                } else {
+                    Poco::JSON::Array::Ptr sub_tpls = json->getArray(name);
+                    for (size_t i = 0; i < sub_tpls->size(); ++i) {
+                        Poco::JSON::Object::Ptr sub_tpl = sub_tpls->getObject(i);
+                        data->set(sub_tpl->getValue<std::string>("name"), this->render_tpl(sub_tpl->getValue<std::string>("path")));
+                    }
+                }
+            }
+            return data;
         }
 
 
