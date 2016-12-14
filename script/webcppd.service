@@ -9,7 +9,7 @@ ExecReload=/bin/bash /usr/bin/webcppd-service.sh restart
 PIDFile=/var/run/webcppd.pid
 SuccessExitStatus=1 2 8 SIGKILL
 Restart=on-failure
-RestartSec=5s
+RestartSec=10s
 
 
 
