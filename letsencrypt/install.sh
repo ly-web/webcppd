@@ -6,7 +6,11 @@
 # Created on Dec 13, 2016, 10:36:44 PM
 #
 
-wget https://dl.eff.org/certbot-auto
+if [ ! -e certbot-auto ] ;then
+    wget https://dl.eff.org/certbot-auto
+fi;
+
+
 chmod +x ./certbot-auto
 sudo systemctl stop webcppd
-sudo ./certbot-auto  --redirect  --standalone --standalone-supported-challenges tls-sni-01 certonly --email admin@webcpp.net  -d webcpp.net -d www.webcpp.net 
+sudo ./certbot-auto  --redirect  --standalone --standalone-supported-challenges tls-sni-01 certonly --email admin@webcpp.net -d www.webcpp.net -d webcpp.net
