@@ -1,13 +1,28 @@
 # webcppd
 
+面向C++ web编程的应用服务器 
+
+## 概述
+
+webcppd 是为了把 C++ 语言变成一种 Web 开发语言而准备的。利用 webcppd,C++ 语言能够
+轻松地与 HTML、JS、CSS 打成一片,无障碍地融入到 Web 开发的实践当中。
+因而,你能够把 C++ 语言当作是更好、更快的 PHP 语言来对待。
+当然,你也可以把 webcppd 当然 C++ 版的 tomcat。
+
+## 特性
 
 
-Fast and Lightweight Web Server for Applications Written in C++
-
-
-
-## 依赖
-### Poco C++ Framework
+- HTTP/1.0 and HTTP/1.1
+- WebSocket
+- HTTPS
+- C++
+- 会话
+- 缓存
+- ip动、静态黑名单
+- 正则路由
+- 防盗链
+- 日志
+- more
 
 ## 依赖安装
 ###  Centos
