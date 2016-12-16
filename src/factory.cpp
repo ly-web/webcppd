@@ -66,8 +66,7 @@ namespace webcppd {
             std::string fullClassName;
 
             for (auto &item : this->route) {
-                Poco::RegularExpression reg(item.first);
-                if (reg.match(path)) {
+                if (Poco::RegularExpression::match(path, item.first)) {
                     fullClassName = item.second;
                     break;
                 }
