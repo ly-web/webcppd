@@ -1,7 +1,7 @@
 #!/bin/sh
 mkdir depend 
 cd depend
-sudo apt-get install openssl libssl-dev libiodbc2 libiodbc2-dev libmysqlclient-dev
+sudo apt-get install openssl libssl-dev unixodbc-dev mariadb-server libmariadbd-dev
 wget https://pocoproject.org/releases/poco-1.7.6/poco-1.7.6-all.tar.gz
 tar xzfv poco-1.7.6-all.tar.gz
 cd poco-1.7.6-all
