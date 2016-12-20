@@ -10,7 +10,7 @@ sudo make install
 
 cd ..
 
-sudo yum -y install openssl-devel unixODBC-devel mariadb mariadb-server mariadb-devel
+sudo yum -y install openssl-devel unixODBC-devel mariadb-devel
 
 wget https://pocoproject.org/releases/poco-1.7.6/poco-1.7.6-all.tar.gz
 tar xzfv poco-1.7.6-all.tar.gz

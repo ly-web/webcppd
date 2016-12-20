@@ -33,11 +33,12 @@ webcppd 是为了把 C++ 语言变成一种 Web 开发语言而准备的。利�
 推荐执行`centos-install-depend.sh`
 
 ### Ubuntu
-不要安装libpoco-dev，它的版本太低
+不要安装libpoco-dev，它的版本太低。请执行`ubuntu-install-depend.sh`
 
-请执行`ubuntu-install-depend.sh`
-
-
+默认编译`Poco Data`模块。需要`unixodbc-dev`和`libmysqld-dev`。
+如果系统存在`/usr/lib/x86_64-linux-gun`目录，请手动添加`-L/usr/lib/x86_64-linux-gun`到`poco-1.7.6-all/Data/MySQL/Makefile`中的`SYSLIBS +=`段。
+如果配置`Poco`时未能支持`mysql`或者`odbc`，又或者编译`Poco`时遇到错误，请检查`/usr/lib` or `/usr/lib64` or `/usr/lib/x86_64-linux-gun`下存在`libmysqlclient_r.so`和`libiodbc.so`。
+如果没有，先创建符号链接再编译。
 
 ## 编译
 `make`
