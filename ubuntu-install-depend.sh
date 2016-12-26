@@ -1,8 +1,10 @@
 #!/bin/sh
 mkdir depend 
 cd depend
-sudo apt-get install openssl libssl-dev unixodbc-dev libmysqld-dev
-wget https://pocoproject.org/releases/poco-1.7.6/poco-1.7.6-all.tar.gz
+sudo apt-get -y install openssl libssl-dev unixodbc-dev libmysqld-dev
+if [ !-e poco-1.7.6-all.tar.gz ];then
+    wget https://pocoproject.org/releases/poco-1.7.6/poco-1.7.6-all.tar.gz
+fi
 tar xzfv poco-1.7.6-all.tar.gz
 cd poco-1.7.6-all
 mkdir cmake_build
