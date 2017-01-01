@@ -21,8 +21,8 @@
 #include <Poco/NumberParser.h>
 #include <Poco/File.h>
 #include <Poco/ExpirationDecorator.h>
-#include <Poco/UniqueExpireCache.h>
-#include <Poco/UniqueExpireLRUCache.h>
+#include <Poco/ExpireCache.h>
+#include <Poco/ExpireLRUCache.h>
 #include <Poco/UUIDGenerator.h>
 #include <Poco/DynamicAny.h>
 #include <Poco/FileStream.h>
@@ -63,14 +63,14 @@ namespace webcppd {
     protected:
         Poco::Util::Application& app;
     private:
-        typedef Poco::ExpireLRUCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
+        typedef Poco::ExpireCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
 
         class session_t : public root_session_t {
         public:
 
-            session_t(long cacheSize = 1024, Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.expires", 3600)*1000) :
-            root_session_t(cacheSize, expire) {
+            session_t(Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.sessionExpires", 3600)*1000)
+            : root_session_t(expire) {
             }
 
         };
@@ -78,8 +78,8 @@ namespace webcppd {
         class cache_t : public root_cache_t {
         public:
 
-            cache_t(long cacheSize = 1024, Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.cacheExpires", 600)*1000) :
-            root_cache_t(cacheSize, expire) {
+            cache_t(long cacheSize = 1024, Poco::Timestamp::TimeDiff expire = Poco::Util::Application::instance().config().getInt64("http.cacheExpires", 600)*1000)
+            : root_cache_t(cacheSize, expire) {
             }
         };
 
@@ -364,9 +364,22 @@ namespace webcppd {
                     data->set(name, json->get(name).convert<std::string>());
                 } else {
                     Poco::JSON::Array::Ptr sub_tpls = json->getArray(name);
+                    std::string name, type, path;
                     for (size_t i = 0; i < sub_tpls->size(); ++i) {
                         Poco::JSON::Object::Ptr sub_tpl = sub_tpls->getObject(i);
-                        data->set(sub_tpl->getValue<std::string>("name"), this->render_tpl(sub_tpl->getValue<std::string>("path")));
+                        type = sub_tpl->has("type") ? sub_tpl->getValue<std::string>("type") : "string";
+                        name = sub_tpl->has("name") ? sub_tpl->getValue<std::string>("name") : "";
+                        path = sub_tpl->has("path") ? sub_tpl->getValue<std::string>("path") : "";
+                        if (!name.empty()&&!path.empty()) {
+                            if (type == "string") {
+                                data->set(name, this->render_tpl(path));
+                            } else {
+                                Kainjow::Mustache::Data::PartialType partail = [ = ](){
+                                    return this->render_tpl(path);
+                                };
+                                data->set(name, Kainjow::Mustache::Data(partail));
+                            }
+                        }
                     }
                 }
             }
