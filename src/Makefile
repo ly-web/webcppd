@@ -35,6 +35,7 @@ install:
 	install ../www/assets/*.* $(RUN_DIR)/www/assets
 	install ../script/webcppd-ctrl.sh $(LN_DIR)
 	install ../script/webcppd-service.sh $(LN_DIR)
+	install ../script/webcppd-backup.sh $(LN_DIR)
 	install ../script/webcppd.service /etc/systemd/system
 	install ../cert/*.* $(RUN_DIR)/cert
 	ln -fs $(INSTALL_DIR)/$(PRO) $(LN_DIR)
