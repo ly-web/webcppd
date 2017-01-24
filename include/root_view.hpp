@@ -57,11 +57,12 @@ namespace webcppd {
     public:
 
         root_view(Poco::Util::Application& self = Poco::Util::Application::instance()) :
-        HTTPRequestHandler(), app(self) {
+        HTTPRequestHandler(), app(self), route_data() {
         }
 
     protected:
         Poco::Util::Application& app;
+        std::vector<std::string> route_data;
     private:
         typedef Poco::ExpireCache<std::string, std::map<std::string, Poco::DynamicAny>> root_session_t;
         typedef Poco::ExpireLRUCache<std::string, std::string> root_cache_t;
@@ -109,6 +110,10 @@ namespace webcppd {
                 this->app.logger().log(e);
                 this->error(request, response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
             }
+        }
+
+        void set_route(const std::vector<std::string>& route_data) {
+            this->route_data = route_data;
         }
 
 

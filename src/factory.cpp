@@ -65,25 +65,34 @@ namespace webcppd {
             std::string path = Poco::URI(request.getURI()).getPath();
             std::string fullClassName;
 
-            for (auto &item : this->route) {
-                if (Poco::RegularExpression::match(path, item.first)) {
-                    fullClassName = item.second;
-                    break;
+            auto route_result = this->get_route(request.getMethod(), path);
+            Poco::Net::HTTPRequestHandler* class_handler = 0;
+            if (std::get<0>(route_result)) {
+                std::string& class_name = std::get<2>(route_result);
+                auto finded = this->classLoader.findClass(class_name);
+                if (finded && finded->canCreate()) {
+                    class_handler = this->classLoader.create(class_name);
+                    finded->autoDelete(class_handler);
                 }
             }
 
-            Poco::Net::HTTPRequestHandler* handler = 0;
-            auto finded = this->classLoader.findClass(fullClassName);
-            if (finded != 0 && finded->canCreate()) {
-                handler = this->classLoader.create(fullClassName);
-                this->classLoader.classFor(fullClassName).autoDelete(handler);
+            if (class_handler) {
+                webcppd::root_view* view = dynamic_cast<webcppd::root_view*> (class_handler);
+                if (view != nullptr) {
+                    view->set_route(std::get<1>(route_result));
+                    request.response().set("page-type", "dynamic");
+                    return class_handler;
+                } else {
+                    return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_NOT_IMPLEMENTED);
+                }
             }
 
-            if (!handler) {
-                return new webcppd::assets();
+
+            if (request.getMethod() != Poco::Net::HTTPRequest::HTTP_GET) {
+                return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_FORBIDDEN);
             }
-            request.response().set("page-type", "dynamic");
-            return handler;
+
+            return new webcppd::assets();
         } catch (Poco::Exception& e) {
             this->app.logger().error(e.message());
             return new webcppd::error(Poco::Net::HTTPServerResponse::HTTP_EXPECTATION_FAILED);
@@ -132,11 +141,8 @@ namespace webcppd {
             while (std::getline(input, line)) {
                 if (line.front() != '#' && !line.empty()) {
                     Poco::StringTokenizer st(line, ",;", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
-                    std::size_t maxIndex = st.count() - 1;
-                    if (maxIndex > 0) {
-                        for (std::size_t i = 0; i < maxIndex; ++i) {
-                            this->route.push_back(std::make_pair(st[i], st[maxIndex]));
-                        }
+                    if (st.count() == 3) {
+                        this->route.push_back(std::make_tuple(st[0], st[1], st[2]));
                     }
                 }
             }
@@ -161,6 +167,26 @@ namespace webcppd {
             ++it;
         }
     }
+
+    std::tuple<bool, std::vector<std::string>, std::string > factory::get_route(const std::string& method, const std::string & path) {
+        std::vector<std::string> vec;
+        std::string className;
+        bool ok = false;
+        for (auto &item : this->route) {
+            std::string& M = std::get<0>(item);
+            std::string& P = std::get<1>(item);
+            Poco::RegularExpression regex(P);
+            if (method == M && regex.match(path)) {
+                regex.split(path, vec);
+                className = std::get<2>(item);
+                ok = true;
+                break;
+            }
+        }
+        return std::make_tuple(ok, vec, className);
+    }
+
+
 
 
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <tuple>
+#include <algorithm>
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/HTTPServerRequest.h>
@@ -27,7 +29,7 @@ namespace webcppd {
         webcppd::ipfilter ipfilter;
         Poco::AutoPtr<Poco::FileChannel> logger;
         Poco::ClassLoader<Poco::Net::HTTPRequestHandler> classLoader;
-        std::vector<std::pair<std::string, std::string> > route;
+        std::vector<std::tuple<std::string, std::string, std::string>> route;
         Poco::RegularExpression hotlinkRegex;
     private:
         void initialize();
@@ -35,6 +37,7 @@ namespace webcppd {
         void config_log();
         void config_route();
         void config_mod();
+        std::tuple<bool, std::vector<std::string>, std::string> get_route(const std::string& method, const std::string& path);
     };
 }
 #endif /* FACTORY_HPP */
