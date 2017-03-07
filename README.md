@@ -1,4 +1,6 @@
 # webcppd
+此项目以升级为[httpevent](https://github.com/webcpp/httpevent).
+欢迎更新！！！
 
 面向C++ web编程的应用服务器 
 
